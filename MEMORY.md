@@ -1,10 +1,11 @@
 # MEMORY.md - Long-Term Learning & Preferences Log
 
 ## Tech Stack
-- Frontend: Modern Single Page Application (SPA), HTML5, Semantic Elements.
-- Styling: Google Stitch "WarungCopilot Modern Retail Engine" Design System (Tailwind CSS CDN dengan custom palette tokens, Plus Jakarta Sans, Google Material Symbols Outlined).
-- State & Persistence: Modular JavaScript (ES Modules) + LocalStorage (Zero-build, instan dijalankan di browser maupun server Laragon).
-- Asset Management: Logo & avatar lokal di folder `assets/` dengan CDN fallback.
+- Backend: Node.js dengan framework Express.js.
+- Frontend & Templating: EJS (Server-Side Rendering) digabung dengan Vanilla JS & LocalStorage untuk state client.
+- Database & Autentikasi: Supabase (PostgreSQL).
+- Styling: Google Stitch "WarungCopilot Modern Retail Engine" Design System (Tailwind CSS CDN).
+- Asset Management: File statis (logo, gambar, js, css) di-serve dari folder `public/`.
 
 ## UI/UX Rules
 - Desain Visual Resmi: Mengadopsi 100% spesifikasi visual Google Stitch (Palette: Primary Emerald `#006948`, Tertiary Amber `#8d4b00`, Error Crimson `#ba1a1a`, Surface `#faf8ff`).
