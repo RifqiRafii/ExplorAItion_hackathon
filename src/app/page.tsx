@@ -712,15 +712,15 @@ function HeroPhone({ reduced }) {
   return (
     <div className="relative mx-auto w-[300px] sm:w-[330px]">
       {/* Badge mengambang */}
-      <FloatBadge show={showBadges} className="-left-10 top-24" delay="0s">
+      <FloatBadge show={showBadges} className="-left-4 lg:-left-12 top-24 z-10" delay="0s">
         <Wallet className="h-4 w-4 text-primary" />
         <span>Kas + Rp 600.000</span>
       </FloatBadge>
-      <FloatBadge show={showBadges} className="-right-10 top-1/2" delay="1.1s">
+      <FloatBadge show={showBadges} className="-right-4 lg:-right-12 top-1/2 z-10" delay="1.1s">
         <BookOpen className="h-4 w-4 text-[#b45309]" />
         <span>Bon Bu Siti Rp 300.000</span>
       </FloatBadge>
-      <FloatBadge show={showBadges} className="-left-6 bottom-24" delay="2.2s">
+      <FloatBadge show={showBadges} className="-left-2 lg:-left-8 bottom-24 z-10" delay="2.2s">
         <AlertTriangle className="h-4 w-4 text-error" />
         <span>Stok beras sisa 2 sak</span>
       </FloatBadge>

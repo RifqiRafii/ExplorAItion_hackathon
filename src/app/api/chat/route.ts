@@ -64,14 +64,27 @@ Jika ditanya tentang sisa stok atau tagihan pelanggan, langsung sebutkan detail 
       functionDeclarations: [
         {
           name: "kurangi_stok",
-          description: "Gunakan fungsi ini jika pengguna mencatat penjualan barang (misalnya 'laku beras 3 sak'). Ini akan mengurangi stok di database secara otomatis.",
+          description: "Gunakan fungsi ini setiap kali ada barang keluar dari warung (baik terjual lunas maupun kasbon). Ini akan mengurangi stok di database secara otomatis.",
           parameters: {
             type: "OBJECT",
             properties: {
               nama_barang: { type: "STRING", description: "Nama barang yang terjual. Harus cocok dengan nama di INFORMASI TOKO." },
-              jumlah_terjual: { type: "INTEGER", description: "Jumlah kuantitas barang yang terjual" }
+              jumlah_terjual: { type: "INTEGER", description: "Jumlah kuantitas barang yang terjual/keluar" }
             },
             required: ["nama_barang", "jumlah_terjual"]
+          }
+        },
+        {
+          name: "catat_kasbon",
+          description: "Gunakan fungsi ini BERSAMAAN dengan kurangi_stok jika ada pelanggan yang berutang/kasbon (misalnya '1 beras kasbon zaki'). Hitung jumlah_utang dari (jumlah_barang * harga_satuan) berdasarkan data produk.",
+          parameters: {
+            type: "OBJECT",
+            properties: {
+              nama_pelanggan: { type: "STRING", description: "Nama pelanggan yang mengutang." },
+              jumlah_utang: { type: "INTEGER", description: "Total nilai utang dalam Rupiah (dihitung otomatis oleh AI dari jumlah barang x harga)." },
+              nama_barang: { type: "STRING", description: "Nama barang yang diutang (opsional)." }
+            },
+            required: ["nama_pelanggan", "jumlah_utang"]
           }
         }
       ]
@@ -99,6 +112,27 @@ Jika ditanya tentang sisa stok atau tagihan pelanggan, langsung sebutkan detail 
           return { success: true, message: `Stok ${item.name} berhasil dikurangi ${jumlah_terjual}. Sisa stok: ${newStock} ${item.unit}` };
         }
         return { success: false, message: `Barang ${nama_barang} tidak ditemukan di database.` };
+      } else if (name === 'catat_kasbon') {
+        const { nama_pelanggan, jumlah_utang, nama_barang } = args;
+        
+        // Asumsi jatuh tempo 7 hari dari sekarang
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 7);
+
+        const { error } = await supabase
+          .from('debts')
+          .insert({
+            umkm_id: userId,
+            customer_name: nama_pelanggan,
+            amount: jumlah_utang,
+            status: 'UNPAID',
+            due_date: dueDate.toISOString().split('T')[0]
+          });
+          
+        if (!error) {
+          return { success: true, message: `Berhasil mencatat kasbon baru:\n- Pelanggan: ${nama_pelanggan}\n- Nominal: Rp${jumlah_utang}\n- Keterangan: ${nama_barang || 'Utang warung'}` };
+        }
+        return { success: false, message: `Gagal mencatat kasbon untuk ${nama_pelanggan}.` };
       }
       return null;
     };

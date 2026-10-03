@@ -55,13 +55,18 @@ export async function startChatWithFallback(
       // Handle Function Calling
       const functionCalls = result.response.functionCalls();
       if (functionCalls && functionCalls.length > 0 && options.executeFunction) {
-        const call = functionCalls[0];
-        const apiResponse = await options.executeFunction(call.name, call.args);
+        let combinedMessage = "";
+        for (const call of functionCalls) {
+          const apiResponse = await options.executeFunction(call.name, call.args);
+          if (apiResponse && apiResponse.message) {
+            combinedMessage += apiResponse.message + "\n\n";
+          }
+        }
         
         // Alih-alih memanggil Gemini lagi yang rawan 503/error,
         // kita langsung kembalikan pesan sukses dari eksekusi fungsi ke user.
         return { 
-          text: apiResponse.message || "Fungsi berhasil dijalankan.", 
+          text: combinedMessage.trim() || "Fungsi berhasil dijalankan.", 
           modelName 
         };
       }
