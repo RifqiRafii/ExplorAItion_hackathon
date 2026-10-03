@@ -11,6 +11,23 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Load chat history from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('warungcopilot_chat_history');
+    if (saved) {
+      try {
+        setMessages(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to load chat history', e);
+      }
+    }
+  }, []);
+
+  // Save chat history to localStorage whenever messages change
+  useEffect(() => {
+    localStorage.setItem('warungcopilot_chat_history', JSON.stringify(messages));
+  }, [messages]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };

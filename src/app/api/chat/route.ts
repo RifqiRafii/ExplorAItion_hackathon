@@ -64,14 +64,15 @@ Jika ditanya tentang sisa stok atau tagihan pelanggan, langsung sebutkan detail 
       functionDeclarations: [
         {
           name: "kurangi_stok",
-          description: "Gunakan fungsi ini setiap kali ada barang keluar dari warung (baik terjual lunas maupun kasbon). Ini akan mengurangi stok di database secara otomatis.",
+          description: "Gunakan fungsi ini setiap kali ada barang keluar dari warung (baik terjual lunas maupun kasbon). Ini akan mengurangi stok di database secara otomatis dan mencatatnya ke Buku Besar (Transaksi).",
           parameters: {
             type: "OBJECT",
             properties: {
               nama_barang: { type: "STRING", description: "Nama barang yang terjual. Harus cocok dengan nama di INFORMASI TOKO." },
-              jumlah_terjual: { type: "INTEGER", description: "Jumlah kuantitas barang yang terjual/keluar" }
+              jumlah_terjual: { type: "INTEGER", description: "Jumlah kuantitas barang yang terjual/keluar" },
+              metode_pembayaran: { type: "STRING", description: "Isi dengan 'CASH' jika tunai lunas, atau 'CREDIT' jika kasbon/berutang." }
             },
-            required: ["nama_barang", "jumlah_terjual"]
+            required: ["nama_barang", "jumlah_terjual", "metode_pembayaran"]
           }
         },
         {
@@ -92,7 +93,7 @@ Jika ditanya tentang sisa stok atau tagihan pelanggan, langsung sebutkan detail 
 
     const executeFunction = async (name: string, args: any) => {
       if (name === 'kurangi_stok') {
-        const { nama_barang, jumlah_terjual } = args;
+        const { nama_barang, jumlah_terjual, metode_pembayaran } = args;
         
         // Cari barang di database
         const { data: item } = await supabase
@@ -104,12 +105,27 @@ Jika ditanya tentang sisa stok atau tagihan pelanggan, langsung sebutkan detail 
           
         if (item) {
           const newStock = Math.max(0, item.stock - jumlah_terjual);
+          
+          // 1. Kurangi stok barang
           await supabase
             .from('products')
             .update({ stock: newStock })
             .eq('id', item.id);
             
-          return { success: true, message: `Stok ${item.name} berhasil dikurangi ${jumlah_terjual}. Sisa stok: ${newStock} ${item.unit}` };
+          // 2. Catat ke tabel transactions agar masuk Buku Besar
+          const totalAmount = item.price * jumlah_terjual;
+          await supabase
+            .from('transactions')
+            .insert({
+              umkm_id: userId,
+              type: 'IN',
+              category: 'PENJUALAN',
+              payment_method: metode_pembayaran === 'CREDIT' ? 'CREDIT' : 'CASH',
+              total_amount: totalAmount,
+              items: [{ name: item.name, quantity: jumlah_terjual, price: item.price }]
+            });
+            
+          return { success: true, message: `Stok ${item.name} berhasil dikurangi ${jumlah_terjual}. Transaksi penjualan tercatat di Buku Besar sebagai ${metode_pembayaran || 'CASH'}. Sisa stok: ${newStock} ${item.unit}` };
         }
         return { success: false, message: `Barang ${nama_barang} tidak ditemukan di database.` };
       } else if (name === 'catat_kasbon') {

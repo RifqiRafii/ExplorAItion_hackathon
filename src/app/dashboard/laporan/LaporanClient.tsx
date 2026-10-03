@@ -22,9 +22,11 @@ interface LaporanClientProps {
 
 export default function LaporanClient({ user, initialTransactions, products, debts }: LaporanClientProps) {
   const [periode, setPeriode] = useState<PeriodeFilter>('ALL');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
 
   // Filter transactions
-  const filteredTrx = filterByPeriode(initialTransactions, periode);
+  const filteredTrx = filterByPeriode(initialTransactions, periode, customStart, customEnd);
   
   // Computations
   const ringkasan = hitungRingkasan(filteredTrx);
@@ -43,6 +45,11 @@ export default function LaporanClient({ user, initialTransactions, products, deb
       case 'THIS_MONTH': return 'Bulan Ini';
       case 'LAST_MONTH': return 'Bulan Lalu';
       case 'LAST_3_MONTHS': return '3 Bulan Terakhir';
+      case 'CUSTOM': 
+        if (customStart && customEnd) {
+          return `${new Date(customStart).toLocaleDateString('id-ID')} - ${new Date(customEnd).toLocaleDateString('id-ID')}`;
+        }
+        return 'Kustom';
     }
   };
 
@@ -71,17 +78,38 @@ export default function LaporanClient({ user, initialTransactions, products, deb
           <p className="text-on-surface-variant text-sm">Lihat ringkasan arus kas dan laba rugi otomatis.</p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <select 
-            value={periode}
-            onChange={(e) => setPeriode(e.target.value as PeriodeFilter)}
-            className="px-4 py-2 bg-surface-container-low border border-outline/20 rounded-xl text-sm font-bold focus:outline-none"
-          >
-            <option value="ALL">Semua Waktu</option>
-            <option value="THIS_MONTH">Bulan Ini</option>
-            <option value="LAST_MONTH">Bulan Lalu</option>
-            <option value="LAST_3_MONTHS">3 Bulan Terakhir</option>
-          </select>
+        <div className="flex flex-col sm:flex-row items-end gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-2">
+            <select 
+              value={periode}
+              onChange={(e) => setPeriode(e.target.value as PeriodeFilter)}
+              className="px-4 py-2 bg-surface-container-low border border-outline/20 rounded-xl text-sm font-bold focus:outline-none"
+            >
+              <option value="ALL">Semua Waktu</option>
+              <option value="THIS_MONTH">Bulan Ini</option>
+              <option value="LAST_MONTH">Bulan Lalu</option>
+              <option value="LAST_3_MONTHS">3 Bulan Terakhir</option>
+              <option value="CUSTOM">Kustom (Dari-Sampai)</option>
+            </select>
+            
+            {periode === 'CUSTOM' && (
+              <div className="flex gap-2 items-center">
+                <input 
+                  type="date" 
+                  value={customStart}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  className="px-3 py-2 bg-surface-container-low border border-outline/20 rounded-xl text-sm focus:outline-none"
+                />
+                <span className="text-sm font-bold">-</span>
+                <input 
+                  type="date" 
+                  value={customEnd}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  className="px-3 py-2 bg-surface-container-low border border-outline/20 rounded-xl text-sm focus:outline-none"
+                />
+              </div>
+            )}
+          </div>
 
           <button 
             onClick={handlePrint}

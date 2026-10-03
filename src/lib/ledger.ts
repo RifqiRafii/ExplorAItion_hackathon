@@ -1,16 +1,23 @@
 export interface Transaction {
   id: string;
   created_at: string;
+  transaction_date?: string;
   type: 'IN' | 'OUT';
+  category?: string;
   payment_method: 'CASH' | 'CREDIT';
   total_amount: number;
   items: any[];
   debt_id?: string | null;
 }
 
-export type PeriodeFilter = 'ALL' | 'THIS_MONTH' | 'LAST_MONTH' | 'LAST_3_MONTHS';
+export type PeriodeFilter = 'ALL' | 'THIS_MONTH' | 'LAST_MONTH' | 'LAST_3_MONTHS' | 'CUSTOM';
 
-export function filterByPeriode(transactions: Transaction[], periode: PeriodeFilter): Transaction[] {
+export function filterByPeriode(
+  transactions: Transaction[], 
+  periode: PeriodeFilter,
+  customStart?: string,
+  customEnd?: string
+): Transaction[] {
   if (periode === 'ALL') return transactions;
   
   const now = new Date();
@@ -18,7 +25,8 @@ export function filterByPeriode(transactions: Transaction[], periode: PeriodeFil
   const currentYear = now.getFullYear();
   
   return transactions.filter(t => {
-    const date = new Date(t.created_at);
+    const trxDateStr = t.transaction_date || t.created_at;
+    const date = new Date(trxDateStr);
     const month = date.getMonth();
     const year = date.getFullYear();
     
@@ -36,6 +44,13 @@ export function filterByPeriode(transactions: Transaction[], periode: PeriodeFil
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(now.getMonth() - 3);
       return date >= threeMonthsAgo && date <= now;
+    }
+    
+    if (periode === 'CUSTOM' && customStart && customEnd) {
+      const start = new Date(customStart);
+      const end = new Date(customEnd);
+      end.setHours(23, 59, 59, 999);
+      return date >= start && date <= end;
     }
     
     return true;
@@ -59,22 +74,19 @@ export function hitungRingkasan(transactions: Transaction[]) {
 }
 
 export function hitungLabaRugi(transactions: Transaction[]) {
-  // Asumsi: penjualan adalah transaksi IN
+  // Asumsi: penjualan adalah transaksi IN (kategori PENJUALAN atau kosong)
   const penjualan = transactions
-    .filter(t => t.type === 'IN')
+    .filter(t => t.type === 'IN' && (t.category === 'PENJUALAN' || !t.category))
     .reduce((sum, t) => sum + t.total_amount, 0);
     
   // Asumsi: HPP (Harga Pokok Penjualan) adalah transaksi OUT untuk stok (kulakan)
   const hpp = transactions
-    .filter(t => t.type === 'OUT' && t.items && t.items.length > 0)
+    .filter(t => t.type === 'OUT' && (t.category === 'KULAKAN' || (t.items && t.items.length > 0 && !t.category)))
     .reduce((sum, t) => sum + t.total_amount, 0);
     
-  // Asumsi biaya lain-lain (OUT tanpa item spesifik atau ditandai beda)
-  // Untuk kesederhanaan, mari kelompokkan semua OUT non-kulakan ke biaya, 
-  // atau anggap semua OUT adalah HPP jika warung sederhana.
-  // Di sini kita anggap semua OUT yang tidak memiliki item adalah biaya operasional.
+  // Biaya operasional (OUT tanpa item atau dikategorikan BIAYA_OPERASIONAL)
   const biaya = transactions
-    .filter(t => t.type === 'OUT' && (!t.items || t.items.length === 0))
+    .filter(t => t.type === 'OUT' && (t.category === 'BIAYA_OPERASIONAL' || (!t.category && (!t.items || t.items.length === 0))))
     .reduce((sum, t) => sum + t.total_amount, 0);
     
   const labaKotor = penjualan - hpp;
@@ -117,11 +129,8 @@ export function hitungPiutang(debts: any[]) {
 
 export function hitungNilaiPersediaan(products: any[]) {
   return products.reduce((acc, curr) => {
-    // Harga persediaan idealnya memakai harga_beli, namun jika tidak ada field tersebut,
-    // kita asumsikan 80% dari harga jual sebagai estimasi kasar nilai inventaris.
-    // (Berdasarkan praktik warung umum)
-    const hargaBeliEstimasi = curr.harga_beli || (curr.price * 0.8);
-    return acc + (hargaBeliEstimasi * curr.stock);
+    const hargaBeli = (curr.cost_price && curr.cost_price > 0) ? curr.cost_price : (curr.price * 0.8);
+    return acc + (Math.floor(hargaBeli) * curr.stock);
   }, 0);
 }
 
@@ -135,7 +144,11 @@ export interface BukuBesarRow {
 
 export function buatBukuBesar(transactions: Transaction[], saldoAwal: number = 0): BukuBesarRow[] {
   // Urutkan kronologis
-  const sorted = [...transactions].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  const sorted = [...transactions].sort((a, b) => {
+    const dateA = new Date(a.transaction_date || a.created_at).getTime();
+    const dateB = new Date(b.transaction_date || b.created_at).getTime();
+    return dateA - dateB;
+  });
   
   let currentSaldo = saldoAwal;
   const rows: BukuBesarRow[] = [];
@@ -156,10 +169,14 @@ export function buatBukuBesar(transactions: Transaction[], saldoAwal: number = 0
       }
     }
     
-    // Keterangan default
-    let keterangan = t.type === 'IN' 
-      ? (t.payment_method === 'CREDIT' ? 'Penjualan (Kasbon)' : 'Penjualan')
-      : (t.payment_method === 'CREDIT' ? 'Kulakan (Ngutang)' : 'Kulakan/Biaya');
+    let keterangan = '';
+    if (t.category) {
+      keterangan = t.category.replace(/_/g, ' ');
+    } else {
+      keterangan = t.type === 'IN' 
+        ? (t.payment_method === 'CREDIT' ? 'Penjualan (Kasbon)' : 'Penjualan')
+        : (t.payment_method === 'CREDIT' ? 'Kulakan (Ngutang)' : 'Kulakan/Biaya');
+    }
       
     if (t.items && t.items.length > 0) {
       const itemNames = t.items.map(i => i.name).join(', ');
@@ -167,7 +184,7 @@ export function buatBukuBesar(transactions: Transaction[], saldoAwal: number = 0
     }
     
     rows.push({
-      tanggal: t.created_at,
+      tanggal: t.transaction_date || t.created_at,
       keterangan,
       masuk: t.payment_method === 'CASH' ? masuk : 0, // Hanya uang tunai riil yang masuk saldo kas
       keluar: t.payment_method === 'CASH' ? keluar : 0,

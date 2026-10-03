@@ -12,6 +12,7 @@ export interface Product {
   umkm_id: string;
   name: string;
   price: number;
+  cost_price?: number;
   stock: number;
   min_stock: number;
   unit: string;
