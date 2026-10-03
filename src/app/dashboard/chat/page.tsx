@@ -67,8 +67,8 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)]">
-      <div className="flex items-center gap-space-xs text-primary font-label-md text-label-md pb-4">
+    <div className="flex flex-col w-full max-w-4xl mx-auto" style={{ height: 'calc(100vh - 7rem)' }}>
+      <div className="flex items-center gap-space-xs text-primary font-label-md text-label-md pb-3 shrink-0">
         <span className="material-symbols-outlined text-xl">smart_toy</span>
         <h1 className="font-headline-sm font-bold text-on-surface">Copilot AI Chat</h1>
       </div>
