@@ -19,10 +19,11 @@ export async function POST(req: NextRequest) {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('userSession');
     let contextData = '';
+    let userId = null;
 
     if (sessionCookie) {
       const user: UserSession = JSON.parse(sessionCookie.value);
-      const userId = user.id;
+      userId = user.id;
 
       // Ambil data stok barang dari Supabase
       const { data: products } = await supabase
@@ -58,16 +59,68 @@ Jika ditanya tentang sisa stok atau tagihan pelanggan, langsung sebutkan detail 
     } else {
       contextData = 'Kamu adalah asisten pintar bernama WarungCopilot. Jawab pertanyaan pengguna dengan ramah dalam bahasa Indonesia yang santai.';
     }
-    // ======== SELESAI IMPLEMENTASI RAG ========
+    // ======== MULAI IMPLEMENTASI TOOLS RAG ========
+    const tools = [{
+      functionDeclarations: [
+        {
+          name: "kurangi_stok",
+          description: "Gunakan fungsi ini jika pengguna mencatat penjualan barang (misalnya 'laku beras 3 sak'). Ini akan mengurangi stok di database secara otomatis.",
+          parameters: {
+            type: "OBJECT",
+            properties: {
+              nama_barang: { type: "STRING", description: "Nama barang yang terjual. Harus cocok dengan nama di INFORMASI TOKO." },
+              jumlah_terjual: { type: "INTEGER", description: "Jumlah kuantitas barang yang terjual" }
+            },
+            required: ["nama_barang", "jumlah_terjual"]
+          }
+        }
+      ]
+    }];
+
+    const executeFunction = async (name: string, args: any) => {
+      if (name === 'kurangi_stok') {
+        const { nama_barang, jumlah_terjual } = args;
+        
+        // Cari barang di database
+        const { data: item } = await supabase
+          .from('products')
+          .select('*')
+          .eq('umkm_id', userId)
+          .ilike('name', `%${nama_barang}%`)
+          .single();
+          
+        if (item) {
+          const newStock = Math.max(0, item.stock - jumlah_terjual);
+          await supabase
+            .from('products')
+            .update({ stock: newStock })
+            .eq('id', item.id);
+            
+          return { success: true, message: `Stok ${item.name} berhasil dikurangi ${jumlah_terjual}. Sisa stok: ${newStock} ${item.unit}` };
+        }
+        return { success: false, message: `Barang ${nama_barang} tidak ditemukan di database.` };
+      }
+      return null;
+    };
+    // ======== SELESAI IMPLEMENTASI TOOLS RAG ========
     
     // Format history percakapan untuk Gemini
-    const history = messages.slice(0, -1).map(msg => ({
+    let history = messages.slice(0, -1).map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }]
     }));
 
+    // Gemini API mensyaratkan pesan pertama (index 0) di history HARUS dari 'user'.
+    while (history.length > 0 && history[0].role === 'model') {
+      history.shift();
+    }
+
     // Start Chat dan Kirim Prompt dengan Fallback Otomatis
-    const { text } = await startChatWithFallback(history, prompt, { systemInstruction: contextData });
+    const { text } = await startChatWithFallback(history, prompt, { 
+      systemInstruction: contextData,
+      tools,
+      executeFunction
+    });
 
     return new Response(JSON.stringify({ role: 'assistant', content: text }), {
       headers: { 'Content-Type': 'application/json' },
