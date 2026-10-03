@@ -9,27 +9,36 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "primary": "#1a5c50",
-        "primary-container": "#2a7d6e",
+        "primary": "#006948", // Primary Emerald
+        "primary-container": "#9df3cc",
         "on-primary": "#ffffff",
-        "on-primary-container": "#e6f3f0",
+        "on-primary-container": "#002114",
+        
+        "tertiary": "#8d4b00", // Tertiary Amber
+        "tertiary-container": "#ffdcc1",
+        "on-tertiary": "#ffffff",
+        "on-tertiary-container": "#2d1600",
+        
         "secondary": "#facc15",
         "secondary-container": "#fef08a",
         "on-secondary": "#1a1917",
         "on-secondary-container": "#713f12",
-        "error": "#dc2626",
-        "error-container": "#fef2f2",
+        
+        "error": "#ba1a1a", // Error Crimson
+        "error-container": "#ffdad6",
         "on-error": "#ffffff",
-        "on-error-container": "#991b1b",
-        "surface": "#faf8f4",
+        "on-error-container": "#410002",
+        
+        "surface": "#faf8ff", // Surface
         "surface-container-lowest": "#ffffff",
-        "surface-container-low": "#f5f0e6",
-        "surface-container": "#e2dbd0",
-        "surface-container-high": "#d6cec1",
-        "on-surface": "#1a1917",
-        "on-surface-variant": "#6b6862",
-        "outline": "#e2dbd0",
-        "outline-variant": "#d6cec1",
+        "surface-container-low": "#f3f4f9",
+        "surface-container": "#eceee8",
+        "surface-container-high": "#e7e9e3",
+        "on-surface": "#191c1b",
+        "on-surface-variant": "#404944",
+        
+        "outline": "#707973",
+        "outline-variant": "#bfc9c2",
       },
       fontFamily: {
         sans: ["var(--font-plus-jakarta-sans)", "sans-serif"],
