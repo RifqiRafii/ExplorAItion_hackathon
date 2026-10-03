@@ -61,10 +61,23 @@ Jika ditanya tentang sisa stok atau tagihan pelanggan, langsung sebutkan detail 
     // ======== SELESAI IMPLEMENTASI RAG ========
     
     // Format history percakapan untuk Gemini
-    const history = messages.slice(0, -1).map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }]
-    }));
+    // Gemini mewajibkan turn pertama di history adalah role 'user'
+    const rawHistory = messages.slice(0, -1);
+    const firstUserIdx = rawHistory.findIndex(m => m.role === 'user');
+    const validHistoryMessages = firstUserIdx === -1 ? [] : rawHistory.slice(firstUserIdx);
+
+    const history: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
+    for (const msg of validHistoryMessages) {
+      const role: 'user' | 'model' = msg.role === 'user' ? 'user' : 'model';
+      if (history.length > 0 && history[history.length - 1].role === role) {
+        history[history.length - 1].parts[0].text += '\n' + msg.content;
+      } else {
+        history.push({
+          role,
+          parts: [{ text: msg.content }]
+        });
+      }
+    }
 
     // Start Chat dan Kirim Prompt dengan Fallback Otomatis
     const { text } = await startChatWithFallback(history, prompt, { systemInstruction: contextData });

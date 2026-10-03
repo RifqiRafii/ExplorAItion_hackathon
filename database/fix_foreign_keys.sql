@@ -29,3 +29,7 @@ CREATE POLICY "Allow all for debts" ON public.debts FOR ALL USING (true) WITH CH
 
 DROP POLICY IF EXISTS "Allow all for transactions" ON public.transactions;
 CREATE POLICY "Allow all for transactions" ON public.transactions FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all for users" ON public.users;
+CREATE POLICY "Allow all for users" ON public.users FOR ALL USING (true) WITH CHECK (true);
+
