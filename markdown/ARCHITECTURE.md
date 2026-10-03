@@ -1,60 +1,52 @@
-# System Architecture (WarungCopilot V1)
+# System Architecture (WarungCopilot V1 - Supabase Edition)
 
-Aplikasi WarungCopilot V1 dibangun dengan arsitektur **Modern Single Page Application (SPA) Vanilla** tanpa kerangka kerja (framework) berat seperti React/Vue/Node.js backend, demi kecepatan eksekusi prototipe, dapat berjalan murni di peramban (browser), dan mudah di-host di lingkungan lokal seperti Laragon.
+Aplikasi WarungCopilot V1 mengadopsi arsitektur **Single Page Application (SPA)** yang di-host secara lokal (Vanilla HTML/JS) namun didukung oleh layanan *Backend-as-a-Service (BaaS)* **Supabase** untuk Database dan Autentikasi di cloud.
 
 ## 1. Teknologi Dasar (Tech Stack)
-- **Frontend / Struktur**: HTML5 (Semantic HTML).
-- **Styling**: Vanilla CSS / Tailwind CSS (via CDN) dengan kustomisasi palet warna desain Google Stitch.
-- **Logika & Interaktivitas**: JavaScript Modern (ES6 Modules).
-- **State & Data Storage**: `Window.localStorage` (Browser API).
-- **Ikon**: Google Material Symbols Outlined (CDN).
+- **Frontend / Struktur**: HTML5.
+- **Styling**: Vanilla CSS / Tailwind CSS (via CDN) dengan palet Google Stitch.
+- **Logika Frontend**: JavaScript Modern (ES6 Modules).
+- **Backend / Database / Auth**: **Supabase** (Client library: `@supabase/supabase-js` CDN).
 
 ## 2. Struktur Proyek & Modul
-Arsitektur menggunakan pola *Modular JavaScript* untuk memisahkan tanggung jawab (Separation of Concerns).
 
 ```text
 ExplorAItion_hackathon/
 │
-├── index.html            # Entry point, Layout Dashboard Utama & Modal Cepat
-├── chat.html             # UI Khusus Panel Chat Copilot (jika dipisah)
-├── piutang.html          # UI Halaman Buku Bon / Piutang
-├── stok.html             # UI Halaman Manajemen Inventaris
+├── login.html            # Halaman Registrasi & Autentikasi Supabase
+├── index.html            # Dashboard Utama, Modal Cepat, dan UI Chat
+├── piutang.html          # Halaman Buku Bon
+├── stok.html             # Halaman Manajemen Inventaris
 │
 ├── css/
-│   └── style.css         # Custom utility classes & CSS variables
+│   └── style.css         
 │
 ├── js/
-│   ├── main.js           # Inisialisasi aplikasi, event listener UI utama
-│   ├── store.js          # State Manager (Wrapper untuk LocalStorage CRUD)
-│   ├── ai-parser.js      # Mesin simulasi NLP (Regex/Keyword matching) untuk chat
-│   └── components.js     # Fungsi untuk me-render HTML komponen (Kartu, Chat Bubble)
+│   ├── supabase.js       # Konfigurasi & Inisialisasi Supabase Client (Keys)
+│   ├── auth.js           # Fungsi Register, Login, Logout, dan Cek Session
+│   ├── main.js           # Router sederhana & UI Event listener
+│   ├── api.js            # Wrapper fungsi async memanggil tabel Supabase (CRUD)
+│   └── ai-parser.js      # NLP Parser Simulator (Regex/Keywords)
 │
-└── assets/               # Gambar, logo, ikon lokal (Avatar AI)
+└── assets/               # Gambar, logo, ikon
 ```
 
 ## 3. Komponen Utama Arsitektur
 
-### A. State Manager (`store.js`)
-Bertanggung jawab atas semua operasi baca-tulis ke `localStorage`. 
-Memiliki metode fungsional seperti:
-- `getKas()`, `addKas(amount)`, `reduceKas(amount)`
-- `getProducts()`, `updateStock(productId, qty)`
-- `getDebts()`, `addDebt(data)`, `payDebt(debtId)`
-- Menjamin konsistensi data sebelum fungsi UI dijalankan.
+### A. Autentikasi (`auth.js` & Supabase)
+- Aplikasi akan selalu mengecek session (`supabase.auth.getSession()`).
+- Jika tidak ada session, lempar (*redirect*) ke `login.html`.
+- Jika ada, ekstrak `user_id` untuk digunakan sebagai `umkm_id` di setiap query.
 
-### B. NLP Parser Engine Simulator (`ai-parser.js`)
-Karena ini adalah prototipe frontend-only, pemrosesan bahasa alami (NLP) disimulasikan menggunakan deteksi kata kunci (Keyword/Regex extraction):
-- **Intent Detection**: Mendeteksi kata kerja (`laku`, `jual`, `beli`, `kulakan`).
-- **Entity Extraction**: Mendeteksi jumlah (angka), nama barang (dicocokkan dengan ID produk di store), nama pelanggan, dan status pembayaran (`utang`, `bon`, `tunai`).
-- Mengembalikan *JSON object* terstruktur ke UI untuk merender Kartu Konfirmasi.
+### B. Database Access (`api.js`)
+- Menggantikan fungsi *store* LocalStorage lama.
+- Semua aksi menjadi *Asynchronous* (`async/await`) untuk berkomunikasi dengan API Supabase.
+- Karena RLS diaktifkan di Supabase, query seperti `supabase.from('products').select('*')` hanya akan mengembalikan produk milik UMKM yang sedang *login*.
 
-### C. Event & Reactivity (`main.js` & `components.js`)
-Bekerja secara prosedural merespons interaksi pengguna:
-1. Menangkap *event* (klik tombol, kirim pesan chat).
-2. Memanggil fungsi logika / parser.
-3. Menyimpan mutasi data lewat `store.js`.
-4. Memicu fungsi *re-render* pada elemen DOM yang terdampak (misal: `document.getElementById('saldo-kas').innerText = ...`).
+### C. Simulasi AI (`ai-parser.js`)
+- Berjalan di *client-side* untuk memecah bahasa alami (NLP simulator).
+- Merangkai *JSON object payload* yang nantinya akan dikirim ke fungsi `api.js` untuk dimasukkan ke tabel `transactions`.
 
-## 4. Keamanan & Batasan
-- Data sepenuhnya berada di sisi klien (Client-side / Browser). Tidak ada data yang dikirim ke server. Cocok untuk privasi di fase prototipe.
-- Saat ini tidak ada sistem *User Authentication* (Login/Register). Aplikasi langsung terbuka pada status *logged in* (Single Tenant).
+## 4. Keamanan Data
+- **Row Level Security (RLS)**: Diatur di server PostgreSQL Supabase sehingga data (Kas, Stok, Piutang) 100% terisolasi antar UMKM/User.
+- **No Backend Server Needed**: Keamanan dikelola sepenuhnya oleh token JWT Supabase, meniadakan kebutuhan backend Node.js untuk versi prototipe ini.

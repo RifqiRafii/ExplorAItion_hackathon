@@ -3,7 +3,7 @@
 ## Tech Stack
 - Frontend: Modern Single Page Application (SPA), HTML5, Semantic Elements.
 - Styling: Google Stitch "WarungCopilot Modern Retail Engine" Design System (Tailwind CSS CDN dengan custom palette tokens, Plus Jakarta Sans, Google Material Symbols Outlined).
-- State & Persistence: Modular JavaScript (ES Modules) + LocalStorage (Zero-build, instan dijalankan di browser maupun server Laragon).
+- State & Persistence: Modular JavaScript (ES Modules) + **Supabase (Auth & PostgreSQL)**. Menggunakan Supabase-JS CDN untuk login setiap UMKM dan penyimpanan data cloud.
 - Asset Management: Logo & avatar lokal di folder `assets/` dengan CDN fallback.
 
 ## UI/UX Rules
@@ -11,6 +11,7 @@
 - Bahasa interaksi dan dokumentasi utama: Bahasa Indonesia.
 - Komunikasi ramah pemula dan minim jargon teknis (hindari debet/kredit/gl).
 - Visual Design: Kombinasi Clean Retail Dashboard dengan Sidebar navigasi lengkap dan Conversational Assistant ala WhatsApp.
+- Fitur Multi-Tenant: Terdapat halaman Login/Registrasi untuk memisahkan data setiap entitas UMKM.
 - Kartu Aksi Cepat (Smart Action): Tombol konfirmasi, penagihan WA langsung (`wa.me`), draf PO agen grosir, dan form transaksi kilat (< 10 detik).
 - Dual Input Mode: Mendukung AI Conversational Chat & Jalur Cepat Form Manual (Quick-Tap) untuk antisipasi antrean ramai di warung.
 
