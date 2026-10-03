@@ -82,34 +82,54 @@ Jika Anda sudah menggunakan Laragon:
 
 ```text
 ExplorAItion_hackathon/
-├── css/
-│   └── style.css          # Desain antarmuka mobile-first kontras tinggi
+├── assets/
+│   ├── logo.png               # Logo resmi WarungCopilot dari Stitch
+│   └── avatar_pak_budi.png    # Avatar kasir Pak Budi dari Stitch
+├── stitch_warungcopilot_ai_assistant/ # Sumber asli hasil ekspor Google Stitch
 ├── js/
-│   ├── app.js             # Kontroler UI, navigasi tab, & event handling
-│   └── store.js           # Manajemen state kas, stok, piutang & LocalStorage
-├── index.html             # Halaman utama aplikasi
-├── server.js              # Server HTTP lokal mandiri (Node.js)
-├── README.md              # Dokumentasi lengkap proyek (file ini)
-├── AGENTS.md              # Aturan & prinsip alur kerja sistem AI
-├── PRD.md                 # Product Requirements Document
-├── PLAN.md                # Roadmap Vertical Slices fitur
-├── TODO.md                # Pelacakan sub-tugas yang sedang aktif
-└── MEMORY.md              # Log preferensi jangka panjang & tech stack
+│   ├── app.js                 # Kontroler UI, router view, AI parser, & event handler
+│   └── store.js               # Manajemen state terpadu (Kas, Stok, Piutang) & LocalStorage
+├── index.html                 # Master Web App terpadu (SPA dengan navigasi 4 modul Stitch)
+├── beranda.html               # Halaman mandiri: Beranda & Arus Kas
+├── chat.html                  # Halaman mandiri: Copilot AI Chat ala WhatsApp
+├── piutang.html               # Halaman mandiri: Buku Piutang & Penagihan Pintar
+├── stok.html                  # Halaman mandiri: Stok & Rekomendasi Restock AI
+├── server.js                  # Server HTTP lokal mandiri (Node.js)
+├── README.md                  # Dokumentasi lengkap proyek (file ini)
+├── AGENTS.md                  # Aturan & prinsip alur kerja sistem AI
+├── PRD.md                     # Product Requirements Document
+├── PLAN.md                    # Roadmap Vertical Slices fitur
+├── TODO.md                    # Pelacakan sub-tugas yang sedang aktif
+└── MEMORY.md                  # Log preferensi jangka panjang & Stitch Design System
 ```
 
 ---
 
-## 🗺️ Roadmap Pengembangan (Vertical Slices)
+## 🖥️ Panduan 4 Modul Layar (Google Stitch)
 
-- [x] **Chunk 1**: Foundation Dashboard & State Management (Kas, Piutang, Stok Kritis).
-- [ ] **Chunk 2**: Jalur Cepat Form Transaksi Manual (*Quick-Tap Entry* untuk antrean toko).
-- [ ] **Chunk 3**: Conversational AI Copilot (Parser bahasa sehari-hari ala WhatsApp).
-- [ ] **Chunk 4**: Simulasi Scan Nota Kamera & Ekstraksi Belanja Kulakan.
-- [ ] **Chunk 5**: Proactive Smart Actions (Restock Kritis & Tombol Tagih via WhatsApp).
+1. **Beranda & Arus Kas** (`#beranda` atau `beranda.html`):
+   - 3 Metrik Vital Ilusi Laba: Kas Aktual Riil, Piutang Mengendap, Nilai Aset Stok.
+   - Copilot Action Feed (Peringatan Stok Genting & Piutang Jatuh Tempo).
+   - Akses Cepat Tombol: "+ Transaksi Cepat (< 10 Detik)", "Dikte Suara AI", dan "Foto Nota Kulakan".
+   - Grafik Arus Kas Masuk vs Keluar mingguan & Aktivitas kasir terkini.
+2. **Copilot AI Chat** (`#chat` atau `chat.html`):
+   - Antarmuka obrolan ala WhatsApp dengan AI Parser bahasa sehari-hari.
+   - Kartu Konfirmasi Interaktif dengan tombol *"Setuju & Simpan ke Buku Kas"*.
+   - Quick Prompt Pills & Simulasi Voice Dictation.
+3. **Buku Piutang & Penagihan Pintar** (`#piutang` atau `piutang.html`):
+   - Pelacakan kartu bon pelanggan dengan status hari jatuh tempo.
+   - Filter: Semua Bon, Kritis Lewat Tempo, dan Aman.
+   - Tombol **"Tagih via WhatsApp"** yang otomatis membuka WhatsApp (`wa.me`) dengan pesan santun dan ramah.
+   - Tombol **"Tandai Lunas"** yang langsung memindahkan nominal ke uang kas riil.
+4. **Stok & Restock Otomatis** (`#stok` atau `stok.html`):
+   - 5 Bento metrik inventaris (SKU Aktif, Kritis Habis, Menipis, Modal Mati, Estimasi Kulakan).
+   - Tabel inventaris dengan badge status otomatis dan filter pencarian.
+   - Draf PO Grosir ke agen supplier via WhatsApp.
 
 ---
 
 ## 💡 Tips Penggunaan untuk Pengujian
 
-- **Reset Data Demo**: Jika ingin mengembalikan data ke simulasi awal toko sembako, cukup klik tombol `🔄` di pojok kanan atas aplikasi.
-- **Mode Mobile di PC**: Untuk pengalaman optimal seperti di layar ponsel, tekan `F12` di browser Anda lalu aktifkan *Device Toggle / Responsive Mode* (pilih iPhone / Samsung Galaxy).
+- **Akses Langsung**: Buka [http://localhost:3000/](http://localhost:3000/) di browser Anda.
+- **Navigasi Cepat**: Gunakan menu di sidebar sebelah kiri untuk berpindah modul secara instan tanpa perlu memuat ulang halaman.
+- **Reset Data Demo**: Cukup klik tombol `🔄` di panel Warung Berkah pada sidebar untuk mengembalikan simulasi ke kondisi awal.
