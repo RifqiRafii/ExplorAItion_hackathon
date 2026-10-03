@@ -18,3 +18,9 @@
 - Direktori Proyek: `d:\laragon\www\ExplorAItion_hackathon`
 - Sistem Operasi: Windows
 - Lingkungan Lokal: Laragon / PowerShell
+
+## Dokumentasi Proyek
+- [SCHEMA.md](file:///c:/Users/ARIEL/OneDrive/Documents/ExplorAItion_hackathon/SCHEMA.md): Skema database LocalStorage.
+- [USERFLOW.md](file:///c:/Users/ARIEL/OneDrive/Documents/ExplorAItion_hackathon/USERFLOW.md): Alur pengguna utama.
+- [RULES.md](file:///c:/Users/ARIEL/OneDrive/Documents/ExplorAItion_hackathon/RULES.md): Aturan bisnis dan pedoman UI/UX.
+- [ARCHITECTURE.md](file:///c:/Users/ARIEL/OneDrive/Documents/ExplorAItion_hackathon/ARCHITECTURE.md): Penjelasan struktur aplikasi.
