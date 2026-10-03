@@ -28,6 +28,7 @@ Aplikasi ini memecahkan masalah mendasar **"ilusi laba"**—di mana pedagang mer
 ---
 
 ## 3. User Journey / Happy Path Flow
+0. **Langkah 0 (Registrasi & Login UMKM)**: Pengguna membuat akun atau masuk untuk mengakses data khusus warungnya (Multi-tenant via Supabase).
 1. **Langkah 1 (Buka Dashboard)**: Pengguna membuka aplikasi dan langsung melihat 3 indikator utama: **Saldo Kas Aktual**, **Total Piutang Belum Tertagih**, dan **Peringatan Stok Kritis**.
 2. **Langkah 2 (Pilihan Jalur Input)**:
    - **Jalur Percakapan/Foto (AI Copilot)**: Tekan tombol FAB mikrofon/chat atau kamera foto nota.
@@ -72,7 +73,7 @@ Untuk memastikan prototipe cepat selesai, teruji, dan stabil:
 - Fitur Proactive Smart Action:
   - Peringatan stok kritis + Draf pesanan restock.
   - Peringatan piutang jatuh tempo + Tombol integrasi deep-link WhatsApp (`wa.me`) dengan pesan otomatis sopan.
-- Penyimpanan lokal (*Local Storage / State Management*) sehingga data transaksi, stok, dan piutang tetap tersimpan saat direfresh.
+- **Sistem Akun & Database Cloud**: Autentikasi Login untuk setiap UMKM dan penyimpanan data terpusat menggunakan **Supabase**, menggantikan penyimpanan lokal agar data aman dan mendukung multi-toko/pengguna di masa depan.
 
 ### Di Luar Ruang Lingkup V1 (Out of Scope):
 - Integrasi Payment Gateway / QRIS dinamis bank.

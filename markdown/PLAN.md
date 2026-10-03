@@ -6,10 +6,15 @@ Roadmap implementasi terstruktur dalam bentuk **Vertical Slices** (fitur lengkap
 
 ## Roadmap Vertical Slices
 
+### [ ] Chunk 0: Autentikasi & Database Supabase
+- [ ] Buat proyek Supabase dan inisialisasi tabel (Users/UMKM, Products, Transactions, Debts).
+- [ ] Implementasikan halaman Login dan Registrasi khusus untuk UMKM.
+- [ ] Terapkan Row Level Security (RLS) agar tiap UMKM hanya bisa melihat datanya sendiri.
+
 ### [ ] Chunk 1: Foundation Dashboard & State Management
 - [ ] Buat struktur proyek web modern yang bersih, cepat, dan mobile-first.
 - [ ] Implementasikan sistem desain visual kontras tinggi (*High-Contrast Friendly*, tipografi tebal, warna status kas/piutang/stok yang tegas).
-- [ ] Buat *State Manager* lokal (Local Storage) untuk menyimpan data Saldo Kas, Inventaris Stok Barang, dan Catatan Piutang agar tidak hilang saat halaman direfresh.
+- [ ] Hubungkan UI dengan Supabase Client untuk menarik dan menyimpan data Saldo Kas, Inventaris Stok Barang, dan Catatan Piutang.
 - [ ] Buat tampilan Dashboard Utama dengan 3 kartu metrik besar (Kas Aktual, Total Piutang Aktif, Indikator Stok Kritis) serta daftar inventaris & mutasi transaksi awal.
 - [ ] Siapkan data awal (*starter demo data*) warung kelontong (Beras, Minyak Goreng, Gula Pasir, Telur).
 

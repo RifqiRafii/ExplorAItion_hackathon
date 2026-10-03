@@ -3,8 +3,8 @@
 ## Tech Stack
 - Backend: Node.js dengan framework Express.js.
 - Frontend & Templating: EJS (Server-Side Rendering) digabung dengan Vanilla JS & LocalStorage untuk state client.
-- Database & Autentikasi: Supabase (PostgreSQL).
-- Styling: Google Stitch "WarungCopilot Modern Retail Engine" Design System (Tailwind CSS CDN).
+- Database & Autentikasi: Supabase (Auth & PostgreSQL) terintegrasi via server-side Node.js.
+- Styling: Google Stitch "WarungCopilot Modern Retail Engine" Design System (Tailwind CSS CDN dengan custom palette tokens, Plus Jakarta Sans, Google Material Symbols Outlined).
 - Asset Management: File statis (logo, gambar, js, css) di-serve dari folder `public/`.
 
 ## UI/UX Rules
@@ -12,6 +12,7 @@
 - Bahasa interaksi dan dokumentasi utama: Bahasa Indonesia.
 - Komunikasi ramah pemula dan minim jargon teknis (hindari debet/kredit/gl).
 - Visual Design: Kombinasi Clean Retail Dashboard dengan Sidebar navigasi lengkap dan Conversational Assistant ala WhatsApp.
+- Fitur Multi-Tenant: Terdapat halaman Login/Registrasi untuk memisahkan data setiap entitas UMKM.
 - Kartu Aksi Cepat (Smart Action): Tombol konfirmasi, penagihan WA langsung (`wa.me`), draf PO agen grosir, dan form transaksi kilat (< 10 detik).
 - Dual Input Mode: Mendukung AI Conversational Chat & Jalur Cepat Form Manual (Quick-Tap) untuk antisipasi antrean ramai di warung.
 
