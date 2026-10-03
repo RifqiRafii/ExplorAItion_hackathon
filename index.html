@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>WarungCopilot - Smart Restock & Pembukuan AI</title>
+  <meta name="description" content="Asisten Keuangan & Inventaris Pintar Khusus Pemilik Warung dan UMKM Sembako/Ritel.">
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top App Header -->
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <div class="brand-logo" aria-hidden="true">⚡</div>
+        <div>
+          <h1 class="brand-title">WarungCopilot</h1>
+          <div class="brand-subtitle">
+            <span class="status-dot"></span> Asisten Aktif &bull; Toko Berkah Jaya
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button id="btnResetDemo" class="btn-icon" title="Reset Data Demo" aria-label="Reset Data Demo">
+          🔄
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Content -->
+    <main class="app-main">
+      <!-- High-Contrast Financial Metrics Section -->
+      <section class="metrics-section" aria-label="Ringkasan Finansial">
+        <!-- Kas Riil Card -->
+        <article class="metric-card cash" id="metricCashCard">
+          <div class="metric-header">
+            <span class="metric-label">Uang Kas di Tangan</span>
+            <span class="metric-icon" aria-hidden="true">💵</span>
+          </div>
+          <div class="metric-value" id="valCash">Rp 0</div>
+          <div class="metric-footer">
+            <span>Uang fisik riil siap pakai</span>
+            <span class="badge badge-cash">Aman</span>
+          </div>
+        </article>
+
+        <!-- Piutang Aktif Card -->
+        <article class="metric-card receivable" id="metricReceivableCard">
+          <div class="metric-header">
+            <span class="metric-label">Piutang / Kasbon Belum Lunas</span>
+            <span class="metric-icon" aria-hidden="true">📖</span>
+          </div>
+          <div class="metric-value" id="valReceivable">Rp 0</div>
+          <div class="metric-footer">
+            <span id="lblReceivableCount">0 orang kasbon</span>
+            <span class="badge badge-amber" id="badgeReceivableStatus">Perlu Ditagih</span>
+          </div>
+        </article>
+
+        <!-- Stok Kritis Card -->
+        <article class="metric-card critical" id="metricStockCard">
+          <div class="metric-header">
+            <span class="metric-label">Peringatan Stok Kritis</span>
+            <span class="metric-icon" aria-hidden="true">⚠️</span>
+          </div>
+          <div class="metric-value" id="valCriticalStock">0 Barang</div>
+          <div class="metric-footer">
+            <span id="lblCriticalHint">Di bawah batas aman toko</span>
+            <span class="badge badge-rose" id="badgeCriticalStatus">Perlu Restock</span>
+          </div>
+        </article>
+      </section>
+
+      <!-- Quick Action Buttons -->
+      <section class="quick-action-banner" aria-label="Aksi Cepat">
+        <button id="btnQuickManual" class="btn-action-primary" title="Buka Form Transaksi Kilat">
+          <span>⚡</span> + Transaksi Cepat
+        </button>
+        <button id="btnScanNota" class="btn-action-secondary" title="Scan Nota Kulakan">
+          <span>📸</span> Foto Nota
+        </button>
+      </section>
+
+      <!-- Navigation Tabs -->
+      <nav class="tabs-nav" aria-label="Navigasi Halaman">
+        <button id="tabInventory" class="tab-btn active" data-tab="inventory">
+          📦 Inventaris Stok (<span id="countInventoryTab">0</span>)
+        </button>
+        <button id="tabTransactions" class="tab-btn" data-tab="transactions">
+          📝 Riwayat & Bon
+        </button>
+      </nav>
+
+      <!-- Tab 1: Inventaris Produk -->
+      <section id="panelInventory" class="tab-content" aria-label="Daftar Produk">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Daftar Stok Sembako</h2>
+            <p class="panel-subtitle">Pantau stok agar tidak overstock & tidak kehabisan barang</p>
+          </div>
+        </div>
+        <div id="productList" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Product item cards rendered dynamically via JS -->
+        </div>
+      </section>
+
+      <!-- Tab 2: Riwayat Mutasi & Bon -->
+      <section id="panelTransactions" class="tab-content" style="display: none;" aria-label="Riwayat Mutasi">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Buku Mutasi & Kasbon</h2>
+            <p class="panel-subtitle">Catatan keluar-masuk uang kas & bon pelanggan</p>
+          </div>
+        </div>
+        <div id="transactionList" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Transaction items rendered dynamically via JS -->
+        </div>
+      </section>
+    </main>
+
+    <!-- Floating AI Copilot Action Button (FAB) -->
+    <button id="btnTriggerCopilot" class="fab-copilot" aria-label="Buka Chat AI Copilot">
+      <span class="fab-sparkle">✨</span>
+      <span>Tanya AI Copilot</span>
+    </button>
+  </div>
+
+  <!-- Main JavaScript App -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
