@@ -40,6 +40,25 @@ module.exports = {
         "outline": "#707973",
         "outline-variant": "#bfc9c2",
       },
+      spacing: {
+        'space-xs': '0.5rem',
+        'space-sm': '0.75rem',
+        'space-md': '1rem',
+        'space-lg': '1.5rem',
+        'space-xl': '2rem',
+        'space-gutter-desktop': '1.5rem',
+      },
+      fontSize: {
+        'headline-lg': ['2rem', { lineHeight: '2.5rem', letterSpacing: '-0.02em' }],
+        'headline-sm': ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.01em' }],
+        'label-lg': ['1rem', { lineHeight: '1.5rem', letterSpacing: '0' }],
+        'label-md': ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '0.01em' }],
+        'label-sm': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.02em' }],
+        'body-lg': ['1rem', { lineHeight: '1.5rem', letterSpacing: '0' }],
+        'body-md': ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '0' }],
+        'body-sm': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0' }],
+        'currency-display': ['2.25rem', { lineHeight: '2.5rem', letterSpacing: '-0.02em' }],
+      },
       fontFamily: {
         sans: ["var(--font-plus-jakarta-sans)", "sans-serif"],
         display: ["var(--font-plus-jakarta-sans)", "serif"], // We'll just use the same sans but bold for display for consistency unless adding another font

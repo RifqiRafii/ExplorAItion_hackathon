@@ -17,7 +17,7 @@ export async function POST(req) {
     
     // ======== MULAI IMPLEMENTASI RAG ========
     // 1. Ambil session user saat ini untuk mengetahui ID warungnya
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('userSession');
     let contextData = '';
 

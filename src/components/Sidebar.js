@@ -9,7 +9,8 @@ export default function Sidebar({ user }) {
     { href: '/dashboard', label: 'Beranda & Arus Kas', icon: 'dashboard' },
     { href: '/dashboard/chat', label: 'Copilot AI Chat', icon: 'smart_toy', badge: 'Online' },
     { href: '/dashboard/piutang', label: 'Buku Piutang & Kasbon', icon: 'menu_book' },
-    { href: '/dashboard/stok', label: 'Stok & Restock', icon: 'inventory_2' }
+    { href: '/dashboard/stok', label: 'Stok & Restock', icon: 'inventory_2' },
+    { href: '/dashboard/scan', label: 'Scanner AI (Foto)', icon: 'document_scanner', badge: 'New' }
   ];
 
   return (

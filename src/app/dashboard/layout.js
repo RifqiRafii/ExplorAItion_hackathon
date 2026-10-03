@@ -2,8 +2,9 @@ import { cookies } from 'next/headers';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 
-export default function DashboardLayout({ children }) {
-  const userSessionStr = cookies().get('userSession')?.value;
+export default async function DashboardLayout({ children }) {
+  const cookieStore = await cookies();
+  const userSessionStr = cookieStore.get('userSession')?.value;
   const user = userSessionStr ? JSON.parse(userSessionStr) : null;
 
   return (

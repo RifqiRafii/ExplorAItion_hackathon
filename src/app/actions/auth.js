@@ -27,7 +27,8 @@ export async function login(formData) {
     owner_name: user.owner_name
   };
   
-  cookies().set('userSession', JSON.stringify(userData), { 
+  const cookieStore = await cookies();
+  cookieStore.set('userSession', JSON.stringify(userData), { 
     httpOnly: true, 
     maxAge: 24 * 60 * 60 
   });
@@ -63,7 +64,8 @@ export async function register(formData) {
     .single();
 
   if (error || !newUser) {
-    return { error: 'Terjadi kesalahan saat mendaftar.' };
+    console.error("Supabase Insert Error:", error);
+    return { error: error?.message || 'Terjadi kesalahan saat mendaftar.' };
   }
 
   // Auto login
@@ -74,7 +76,8 @@ export async function register(formData) {
     owner_name: newUser.owner_name
   };
   
-  cookies().set('userSession', JSON.stringify(userData), { 
+  const cookieStore = await cookies();
+  cookieStore.set('userSession', JSON.stringify(userData), { 
     httpOnly: true, 
     maxAge: 24 * 60 * 60 
   });
@@ -83,6 +86,7 @@ export async function register(formData) {
 }
 
 export async function logout() {
-  cookies().delete('userSession');
+  const cookieStore = await cookies();
+  cookieStore.delete('userSession');
   redirect('/login');
 }
