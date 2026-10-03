@@ -1,12 +1,12 @@
 'use client';
 
 import { login } from '@/app/actions/auth';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import Link from 'next/link';
 import { Store, ArrowRight, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
-  const [error, formAction] = useFormState(async (prevState, formData) => {
+  const [error, formAction] = useActionState(async (prevState, formData) => {
     const res = await login(formData);
     return res?.error || null;
   }, null);

@@ -1,12 +1,12 @@
 'use client';
 
 import { register } from '@/app/actions/auth';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import Link from 'next/link';
 import { Store, ArrowRight, User, Phone, Mail, Lock, Building2 } from 'lucide-react';
 
 export default function RegisterPage() {
-  const [error, formAction] = useFormState(async (prevState, formData) => {
+  const [error, formAction] = useActionState(async (prevState, formData) => {
     const res = await register(formData);
     return res?.error || null;
   }, null);
