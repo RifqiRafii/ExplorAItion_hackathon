@@ -133,3 +133,21 @@ export async function deleteDebt(debtId: string) {
   revalidatePath('/dashboard');
   return { success: true };
 }
+
+export async function updateLastBilled(debtId: string) {
+  const user = await getUser();
+  if (!user) return { error: 'No session' };
+
+  try {
+    await supabase
+      .from('debts')
+      .update({ last_billed_at: new Date().toISOString() })
+      .eq('id', debtId)
+      .eq('umkm_id', user.id);
+  } catch (e) {
+    console.error('Error updating last_billed_at', e);
+  }
+  
+  revalidatePath('/dashboard/piutang');
+  return { success: true };
+}

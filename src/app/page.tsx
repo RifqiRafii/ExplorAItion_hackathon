@@ -483,8 +483,8 @@ function Splash({ fading }) {
       <div className="wc-splash-logo flex flex-col items-center">
         <div className="relative mb-6">
           <span className="wc-ring absolute inset-0 rounded-3xl bg-primary/30" />
-          <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-primary shadow-xl">
-            <Store className="h-12 w-12 text-white" strokeWidth={1.75} />
+          <div className="relative flex h-28 w-28 items-center justify-center rounded-3xl bg-surface shadow-xl overflow-hidden">
+            <img src="/assets/maskotlogo.png" alt="WarungCopilot Logo" className="w-[80px] h-[80px] object-contain drop-shadow-md" />
           </div>
         </div>
         <span className="font-display text-4xl font-bold tracking-tight text-primary sm:text-5xl">
@@ -530,8 +530,8 @@ function Navbar({ visible, activeId }) {
           href="/"
           className="flex items-center gap-3 transition-transform duration-200 hover:scale-105"
         >
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/15">
-            <Store className="h-6 w-6 text-white" strokeWidth={1.75} />
+          <span className="flex items-center justify-center h-[60px] w-[60px]">
+            <img src="/assets/maskotlogo.png" alt="Logo" className="w-[60px] h-[60px] object-contain drop-shadow-lg" />
           </span>
           <span className="font-display text-[26px] font-bold tracking-tight text-white drop-shadow-md">
             WarungCopilot

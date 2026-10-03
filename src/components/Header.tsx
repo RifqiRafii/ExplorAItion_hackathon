@@ -12,7 +12,7 @@ export default function Header({ user }: HeaderProps) {
     <header className="fixed top-0 left-72 right-0 h-16 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-space-gutter-desktop flex items-center justify-between gap-space-md">
       <div className="flex items-center gap-space-md flex-1">
         <div className="flex items-center gap-space-xs text-on-surface">
-          <span className="material-symbols-outlined text-primary text-xl">storefront</span>
+          <img src="/assets/maskotlogo.png" alt="Logo" className="w-[60px] h-[60px] object-contain drop-shadow-sm -ml-2" />
           <span className="font-headline-sm text-headline-sm font-bold text-on-surface">
             {user?.store_name || user?.warung_name || 'Warung Berkah Jaya'}
           </span>

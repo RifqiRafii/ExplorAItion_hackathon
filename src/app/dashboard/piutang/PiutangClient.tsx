@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { addDebt, toggleDebtStatus, deleteDebt } from '@/app/actions/piutang';
+import { addDebt, toggleDebtStatus, deleteDebt, updateLastBilled } from '@/app/actions/piutang';
+import { hitungHariTelat, buatPesanTagih, normalisasiNomor, linkWa } from '@/lib/penagih';
 import type { Debt } from '@/types';
 
 interface PiutangClientProps {
@@ -16,6 +17,8 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [previewDebt, setPreviewDebt] = useState<Debt | null>(null);
+  const [previewMessage, setPreviewMessage] = useState('');
 
   // Default due date: 7 days from now
   const defaultDueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -222,16 +225,24 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
                     </td>
                     <td className="p-space-md text-right">
                       <div className="inline-flex items-center gap-1">
-                        {debt.status === 'UNPAID' && debt.customer_phone && (
-                          <a 
-                            href={`https://wa.me/${debt.customer_phone.replace(/^0/, '62').replace(/[^0-9]/g, '')}?text=Halo%20${encodeURIComponent(debt.customer_name)},%20ini%20pengingat%20tagihan%20kasbon%20sebesar%20Rp%20${debt.amount.toLocaleString('id-ID')}%20yang%20jatuh%20tempo%20pada%20${new Date(debt.due_date).toLocaleDateString('id-ID')}.%20Terima%20kasih!`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
+                        {debt.status === 'UNPAID' && (
+                          <button 
+                            onClick={() => {
+                              const hariTelat = hitungHariTelat(debt.due_date);
+                              const msg = buatPesanTagih({
+                                nama: debt.customer_name,
+                                nominal: debt.amount,
+                                hariTelat: hariTelat,
+                                toko: 'WarungCopilot'
+                              });
+                              setPreviewMessage(msg);
+                              setPreviewDebt(debt);
+                            }}
                             title="Kirim pengingat WhatsApp"
-                            className="text-primary hover:text-primary-container transition-colors inline-flex items-center gap-1 font-label-md font-bold bg-primary/10 px-2.5 py-1.5 rounded-lg"
+                            className="text-primary hover:text-primary-container transition-colors inline-flex items-center gap-1 font-label-md font-bold bg-primary/10 px-2.5 py-1.5 rounded-lg cursor-pointer"
                           >
                             <span className="material-symbols-outlined text-sm">send</span> Tagih WA
-                          </a>
+                          </button>
                         )}
                         <button
                           onClick={() => handleToggleStatus(debt)}
@@ -275,6 +286,79 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
           </table>
         </div>
       </div>
+
+      {/* Modal Preview Tagihan WA */}
+      {previewDebt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline/20 p-6 w-full max-w-lg shadow-xl relative">
+            <div className="flex items-center justify-between pb-4 border-b border-outline/10">
+              <div className="flex items-center gap-2 text-primary font-bold">
+                <span className="material-symbols-outlined">forum</span>
+                <h3 className="font-headline-sm font-bold text-on-surface">Kirim Pesan Tagihan</h3>
+              </div>
+              <button 
+                onClick={() => setPreviewDebt(null)}
+                className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg hover:bg-surface-container cursor-pointer"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                  Nomor Tujuan
+                </label>
+                <div className="font-body-md bg-surface-container-low p-2 rounded-lg border border-outline/10">
+                  {previewDebt.customer_phone || <span className="text-error italic">Tidak ada nomor HP</span>}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                  Pesan WhatsApp
+                </label>
+                <textarea
+                  value={previewMessage}
+                  onChange={(e) => setPreviewMessage(e.target.value)}
+                  className="w-full h-48 px-4 py-3 bg-surface-container-low border border-outline/20 rounded-xl text-sm focus:outline-none focus:border-primary font-body-md resize-none"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-outline/10 flex justify-end gap-2">
+                <button
+                  onClick={() => setPreviewDebt(null)}
+                  className="px-4 py-2.5 rounded-xl border border-outline/20 text-on-surface-variant hover:bg-surface-container font-bold text-sm transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                {previewDebt.customer_phone && normalisasiNomor(previewDebt.customer_phone) ? (
+                  <a
+                    href={linkWa(previewDebt.customer_phone, previewMessage)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      updateLastBilled(previewDebt.id);
+                      setPreviewDebt(null);
+                      setSuccessMessage('Pesan WA telah disiapkan di tab baru.');
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20b858] text-white font-bold text-sm flex items-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-sm">send</span> Kirim via WhatsApp
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    className="px-5 py-2.5 rounded-xl bg-surface-container-high text-on-surface-variant font-bold text-sm flex items-center gap-2 opacity-50 cursor-not-allowed"
+                  >
+                    <span className="material-symbols-outlined text-sm">block</span> Tambahkan nomor HP dulu
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Tambah Catatan Piutang */}
       {isModalOpen && (

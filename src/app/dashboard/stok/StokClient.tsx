@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, FormEvent, ChangeEvent } from 'react';
 import { addProduct, updateProduct, adjustProductStock, deleteProduct } from '@/app/actions/stok';
+import { buatPesanOrder, linkWa, normalisasiNomor } from '@/lib/penagih';
 import type { Product } from '@/types';
 
 interface StokClientProps {
@@ -19,6 +20,10 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  
+  const [previewOrder, setPreviewOrder] = useState<boolean>(false);
+  const [previewOrderMsg, setPreviewOrderMsg] = useState('');
+  const [agenPhone, setAgenPhone] = useState('');
 
   // Barcode scanner states
   const [barcodeInput, setBarcodeInput] = useState('');
@@ -272,20 +277,37 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
         </div>
         
         {lowStockProducts.length > 0 && (
-          <div 
-            onClick={() => setFilter(filter === 'LOW' ? 'ALL' : 'LOW')}
-            className="cursor-pointer bg-error-container border border-error/30 hover:border-error p-space-md rounded-2xl flex flex-col min-w-[250px] shadow-sm transition-all"
-            title="Klik untuk filter hanya barang yang menipis"
-          >
-            <span className="flex items-center gap-2 font-label-sm uppercase text-on-error-container font-bold mb-1">
-              <span className="material-symbols-outlined text-sm">warning</span> Stok Menipis
-            </span>
-            <span className="font-headline-sm text-error font-extrabold">
-              {lowStockProducts.length} Barang Perlu Restock
-            </span>
-            <span className="text-xs text-on-error-container/80 mt-1">
-              {filter === 'LOW' ? 'Menampilkan stok tipis (Klik reset)' : 'Klik untuk filter stok tipis'}
-            </span>
+          <div className="flex flex-col gap-2">
+            <div 
+              onClick={() => setFilter(filter === 'LOW' ? 'ALL' : 'LOW')}
+              className="cursor-pointer bg-error-container border border-error/30 hover:border-error p-space-md rounded-2xl flex flex-col min-w-[250px] shadow-sm transition-all"
+              title="Klik untuk filter hanya barang yang menipis"
+            >
+              <span className="flex items-center gap-2 font-label-sm uppercase text-on-error-container font-bold mb-1">
+                <span className="material-symbols-outlined text-sm">warning</span> Stok Menipis
+              </span>
+              <span className="font-headline-sm text-error font-extrabold">
+                {lowStockProducts.length} Barang Perlu Restock
+              </span>
+              <span className="text-xs text-on-error-container/80 mt-1">
+                {filter === 'LOW' ? 'Menampilkan stok tipis (Klik reset)' : 'Klik untuk filter stok tipis'}
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                const itemsToOrder = lowStockProducts.map(p => ({
+                  nama: p.name,
+                  jumlah: p.min_stock * 2,
+                  satuan: p.unit
+                }));
+                const msg = buatPesanOrder({ agen: 'Bapak/Ibu Agen', toko: 'WarungCopilot', items: itemsToOrder });
+                setPreviewOrderMsg(msg);
+                setPreviewOrder(true);
+              }}
+              className="w-full bg-[#25D366] hover:bg-[#20b858] text-white font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-2 text-sm shadow-sm transition-colors cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-sm">send</span> Pesan ke Agen via WA
+            </button>
           </div>
         )}
       </div>
@@ -457,6 +479,82 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
           </table>
         </div>
       </div>
+
+      {/* Modal Preview Order WA */}
+      {previewOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline/20 p-6 w-full max-w-lg shadow-xl relative">
+            <div className="flex items-center justify-between pb-4 border-b border-outline/10">
+              <div className="flex items-center gap-2 text-primary font-bold">
+                <span className="material-symbols-outlined">shopping_cart_checkout</span>
+                <h3 className="font-headline-sm font-bold text-on-surface">Pesan Restock ke Agen</h3>
+              </div>
+              <button 
+                onClick={() => setPreviewOrder(false)}
+                className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg hover:bg-surface-container cursor-pointer"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                  Nomor WhatsApp Agen
+                </label>
+                <input
+                  type="tel"
+                  value={agenPhone}
+                  onChange={(e) => setAgenPhone(e.target.value)}
+                  placeholder="Contoh: 08123456789"
+                  className="w-full px-4 py-2 bg-surface-container-low border border-outline/20 rounded-xl text-sm focus:outline-none focus:border-primary font-body-md"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                  Pesan WhatsApp
+                </label>
+                <textarea
+                  value={previewOrderMsg}
+                  onChange={(e) => setPreviewOrderMsg(e.target.value)}
+                  className="w-full h-48 px-4 py-3 bg-surface-container-low border border-outline/20 rounded-xl text-sm focus:outline-none focus:border-primary font-body-md resize-none"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-outline/10 flex justify-end gap-2">
+                <button
+                  onClick={() => setPreviewOrder(false)}
+                  className="px-4 py-2.5 rounded-xl border border-outline/20 text-on-surface-variant hover:bg-surface-container font-bold text-sm transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                {agenPhone && normalisasiNomor(agenPhone) ? (
+                  <a
+                    href={linkWa(agenPhone, previewOrderMsg)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      setPreviewOrder(false);
+                      setSuccessMessage('Pesan order telah disiapkan di tab WA baru.');
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20b858] text-white font-bold text-sm flex items-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-sm">send</span> Kirim Pesanan
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    className="px-5 py-2.5 rounded-xl bg-surface-container-high text-on-surface-variant font-bold text-sm flex items-center gap-2 opacity-50 cursor-not-allowed"
+                  >
+                    <span className="material-symbols-outlined text-sm">block</span> Isi Nomor Agen Dulu
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Scan Barcode */}
       {isBarcodeModalOpen && (

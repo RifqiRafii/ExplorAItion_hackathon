@@ -30,7 +30,8 @@ export default function Sidebar({ user }: SidebarProps) {
     <aside className="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between">
       <div className="flex flex-col flex-1">
         {/* App Brand & Logo */}
-        <div className="h-16 px-space-lg flex items-center gap-space-sm bg-surface-container-low/40">
+        <div className="h-[80px] px-space-md flex items-center gap-3 bg-surface-container-low/40">
+          <img src="/assets/maskotlogo.png" alt="Logo" className="w-[60px] h-[60px] object-contain drop-shadow-sm" />
           <div className="flex flex-col">
             <span className="font-headline-sm text-headline-sm text-primary leading-tight font-bold tracking-tight">WarungCopilot</span>
             <span className="font-label-sm text-label-sm text-on-surface-variant">AI Sembako &amp; Retail</span>
