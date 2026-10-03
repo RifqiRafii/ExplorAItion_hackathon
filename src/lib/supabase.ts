@@ -6,5 +6,4 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUP
 if (!supabaseUrl || !supabaseKey) {
   console.warn('Supabase credentials not found. Make sure .env.local is configured.');
 }
-
 export const supabase = createClient(supabaseUrl, supabaseKey);
