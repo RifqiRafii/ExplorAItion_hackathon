@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Store, ArrowRight, User, Phone, Mail, Lock, Building2 } from 'lucide-react';
 
 export default function RegisterPage() {
-  const [error, formAction] = useActionState(async (prevState, formData) => {
+  const [error, formAction] = useActionState(async (_prevState: string | null, formData: FormData) => {
     const res = await register(formData);
     return res?.error || null;
   }, null);
@@ -113,7 +113,7 @@ export default function RegisterPage() {
 
             <button 
               type="submit" 
-              className="w-full h-[52px] bg-primary hover:bg-[#154a40] text-white rounded-xl font-bold text-[15px] shadow-md hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+              className="w-full h-[52px] bg-primary hover:bg-[#154a40] text-white rounded-xl font-bold text-[15px] shadow-md hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 group cursor-pointer"
             >
               <span>Daftar Sekarang</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

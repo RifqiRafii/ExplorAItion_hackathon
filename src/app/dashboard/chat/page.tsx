@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, FormEvent } from 'react';
+import type { ChatMessage } from '@/types';
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: 'Halo! Saya Copilot AI Anda. Ada yang bisa saya bantu terkait warung atau manajemen stok hari ini?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -18,11 +19,11 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  const sendMessage = async (e) => {
+  const sendMessage = async (e: FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMessage = { role: 'user', content: input };
+    const userMessage: ChatMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
@@ -41,7 +42,7 @@ export default function ChatPage() {
       } else {
         setMessages(prev => [...prev, data]);
       }
-    } catch (error) {
+    } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Maaf, terjadi kesalahan saat menghubungi AI.' }]);
     } finally {
       setIsLoading(false);
@@ -63,7 +64,7 @@ export default function ChatPage() {
                 ? 'bg-primary text-on-primary rounded-tr-none' 
                 : 'bg-surface-container text-on-surface rounded-tl-none'
             }`}>
-              <p className="font-body-md">{msg.content}</p>
+              <p className="font-body-md whitespace-pre-wrap">{msg.content}</p>
             </div>
           </div>
         ))}
@@ -90,7 +91,7 @@ export default function ChatPage() {
         <button 
           type="submit" 
           disabled={isLoading || !input.trim()}
-          className="h-12 px-6 bg-primary hover:bg-primary-container text-on-primary rounded-xl font-label-md font-bold transition-all disabled:opacity-50 flex items-center gap-2"
+          className="h-12 px-6 bg-primary hover:bg-primary-container text-on-primary rounded-xl font-label-md font-bold transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
         >
           <span>Kirim</span>
           <span className="material-symbols-outlined text-sm">send</span>

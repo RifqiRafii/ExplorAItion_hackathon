@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
-export function proxy(request) {
+export function proxy(request: NextRequest) {
   const userSession = request.cookies.get('userSession')?.value;
   const { pathname } = request.nextUrl;
 

@@ -1,12 +1,17 @@
-'use server'
+'use server';
 
 import { supabase } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import type { UserSession } from '@/types';
 
-export async function login(formData) {
-  const email = formData.get('email');
-  const password = formData.get('password');
+export async function login(formData: FormData) {
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+
+  if (!email || !password) {
+    return { error: 'Email dan kata sandi wajib diisi.' };
+  }
 
   const { data: user, error } = await supabase
     .from('users')
@@ -20,11 +25,12 @@ export async function login(formData) {
   }
 
   // Set user session in cookies (Expires in 1 day)
-  const userData = {
+  const userData: UserSession = {
     id: user.id,
     email: user.email,
     store_name: user.store_name,
-    owner_name: user.owner_name
+    owner_name: user.owner_name,
+    phone_number: user.phone_number,
   };
   
   const cookieStore = await cookies();
@@ -36,12 +42,16 @@ export async function login(formData) {
   redirect('/dashboard');
 }
 
-export async function register(formData) {
-  const email = formData.get('email');
-  const password = formData.get('password');
-  const store_name = formData.get('store_name');
-  const owner_name = formData.get('owner_name');
-  const phone_number = formData.get('phone_number');
+export async function register(formData: FormData) {
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+  const store_name = formData.get('store_name') as string;
+  const owner_name = formData.get('owner_name') as string;
+  const phone_number = formData.get('phone_number') as string;
+
+  if (!email || !password || !store_name || !owner_name) {
+    return { error: 'Semua kolom bertanda bintang wajib diisi.' };
+  }
 
   // Check if user already exists
   const { data: existingUser } = await supabase
@@ -64,16 +74,17 @@ export async function register(formData) {
     .single();
 
   if (error || !newUser) {
-    console.error("Supabase Insert Error:", error);
+    console.error('Supabase Insert Error:', error);
     return { error: error?.message || 'Terjadi kesalahan saat mendaftar.' };
   }
 
   // Auto login
-  const userData = {
+  const userData: UserSession = {
     id: newUser.id,
     email: newUser.email,
     store_name: newUser.store_name,
-    owner_name: newUser.owner_name
+    owner_name: newUser.owner_name,
+    phone_number: newUser.phone_number,
   };
   
   const cookieStore = await cookies();

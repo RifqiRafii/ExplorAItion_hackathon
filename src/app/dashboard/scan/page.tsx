@@ -1,18 +1,19 @@
 'use client';
-import { useState } from 'react';
+
+import { useState, ChangeEvent } from 'react';
 
 export default function ScanPage() {
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<string | null>(null);
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
       const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result);
+      reader.onloadend = () => setPreview(reader.result as string);
       reader.readAsDataURL(selectedFile);
     }
   };
@@ -34,7 +35,7 @@ export default function ScanPage() {
       if (data.error) throw new Error(data.error);
       
       setResult(data.result);
-    } catch (error) {
+    } catch (error: any) {
       setResult(`Gagal menganalisis gambar: ${error.message}`);
     } finally {
       setLoading(false);
@@ -45,7 +46,7 @@ export default function ScanPage() {
     <div className="flex flex-col w-full max-w-4xl mx-auto">
       <div className="mb-space-lg">
         <h1 className="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight mb-2">
-          Scanner AI (Nota & Rak)
+          Scanner AI (Nota &amp; Rak)
         </h1>
         <p className="text-body-lg text-on-surface-variant">
           Unggah foto nota bon supplier atau foto etalase/rak warung Anda. AI akan otomatis mengekstrak data transaksi atau mengecek stok yang habis.
@@ -82,7 +83,7 @@ export default function ScanPage() {
           <button 
             onClick={handleScan}
             disabled={!preview || loading}
-            className="w-full py-4 rounded-xl font-bold text-label-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-primary hover:bg-primary/90 text-on-primary shadow-md"
+            className="w-full py-4 rounded-xl font-bold text-label-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-primary hover:bg-primary/90 text-on-primary shadow-md cursor-pointer"
           >
             {loading ? (
               <>

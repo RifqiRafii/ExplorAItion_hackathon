@@ -1,11 +1,24 @@
 'use client';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import type { UserSession } from '@/types';
 
-export default function Sidebar({ user }) {
+interface SidebarProps {
+  user: UserSession | null;
+}
+
+interface NavLinkItem {
+  href: string;
+  label: string;
+  icon: string;
+  badge?: string;
+}
+
+export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
 
-  const links = [
+  const links: NavLinkItem[] = [
     { href: '/dashboard', label: 'Beranda & Arus Kas', icon: 'dashboard' },
     { href: '/dashboard/chat', label: 'Copilot AI Chat', icon: 'smart_toy', badge: 'Online' },
     { href: '/dashboard/piutang', label: 'Buku Piutang & Kasbon', icon: 'menu_book' },
@@ -30,7 +43,9 @@ export default function Sidebar({ user }) {
             <div className="flex items-center gap-space-xs">
               <span className="material-symbols-outlined text-primary text-lg">store</span>
               <div className="flex flex-col">
-                <span className="font-label-md text-label-md text-on-surface font-bold truncate max-w-[150px]">{user?.store_name || 'Warung Berkah'}</span>
+                <span className="font-label-md text-label-md text-on-surface font-bold truncate max-w-[150px]">
+                  {user?.store_name || user?.warung_name || 'Warung Berkah'}
+                </span>
                 <span className="font-body-sm text-body-sm text-on-surface-variant truncate max-w-[150px]">Cabang Utama</span>
               </div>
             </div>
@@ -45,7 +60,11 @@ export default function Sidebar({ user }) {
               <Link 
                 key={link.href}
                 href={link.href}
-                className={`flex items-center justify-between px-space-md py-space-sm rounded-xl font-label-lg text-label-lg transition-all ${isActive ? 'bg-primary-container text-on-primary-container font-bold shadow-sm' : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}`}
+                className={`flex items-center justify-between px-space-md py-space-sm rounded-xl font-label-lg text-label-lg transition-all ${
+                  isActive 
+                    ? 'bg-primary-container text-on-primary-container font-bold shadow-sm' 
+                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                }`}
               >
                 <div className="flex items-center gap-space-sm">
                   <span className="material-symbols-outlined text-xl">{link.icon}</span>

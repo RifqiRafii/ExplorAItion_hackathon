@@ -1,11 +1,16 @@
 import { cookies } from 'next/headers';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
+import type { UserSession } from '@/types';
 
-export default async function DashboardLayout({ children }) {
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const cookieStore = await cookies();
   const userSessionStr = cookieStore.get('userSession')?.value;
-  const user = userSessionStr ? JSON.parse(userSessionStr) : null;
+  const user: UserSession | null = userSessionStr ? JSON.parse(userSessionStr) : null;
 
   return (
     <div className="min-h-screen bg-surface flex">
