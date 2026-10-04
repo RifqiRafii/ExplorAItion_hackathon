@@ -22,6 +22,7 @@ export default function Sidebar({ user, isOpen = false, onClose }: SidebarProps)
 
   const links: NavLinkItem[] = [
     { href: '/dashboard', label: 'Beranda & Arus Kas', icon: 'dashboard' },
+    { href: '/dashboard/transaksi', label: 'Kasir & Transaksi', icon: 'point_of_sale', badge: 'Input' },
     { href: '/dashboard/laporan', label: 'Buku Besar & Laporan', icon: 'receipt_long' },
     { href: '/dashboard/chat', label: 'Copilot AI Chat', icon: 'smart_toy', badge: 'Online' },
     { href: '/dashboard/piutang', label: 'Buku Piutang & Kasbon', icon: 'menu_book' },

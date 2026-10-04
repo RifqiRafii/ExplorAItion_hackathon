@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, FormEvent, ChangeEvent } from 'react';
+import Link from 'next/link';
 import { addProduct, updateProduct, adjustProductStock, deleteProduct } from '@/app/actions/stok';
 import { buatPesanOrder, linkWa, normalisasiNomor } from '@/lib/penagih';
 import type { Product } from '@/types';
@@ -374,16 +375,22 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
             </div>
           </div>
 
-          <div className="flex gap-2 w-full md:w-auto">
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            <Link
+              href="/dashboard/transaksi"
+              className="flex-1 md:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm text-xs cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-sm">point_of_sale</span> Input Penjualan (Kasir)
+            </Link>
             <button 
               onClick={() => { setIsBarcodeModalOpen(true); setScannerTab('camera'); }}
-              className="flex-1 md:flex-initial bg-surface-container hover:bg-surface-container-high text-on-surface px-space-md py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="flex-1 md:flex-initial bg-surface-container hover:bg-surface-container-high text-on-surface px-space-md py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer text-xs"
             >
               <span className="material-symbols-outlined text-sm">qr_code_scanner</span> Scan Barcode
             </button>
             <button 
               onClick={() => { setIsAddModalOpen(true); setErrorMessage(''); setScannedBarcode(''); }}
-              className="flex-1 md:flex-initial bg-primary hover:bg-primary/90 text-on-primary px-space-md py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
+              className="flex-1 md:flex-initial bg-primary hover:bg-primary/90 text-on-primary px-space-md py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer text-xs"
             >
               <span className="material-symbols-outlined text-sm">add</span> Tambah Barang
             </button>

@@ -59,6 +59,20 @@ export default async function DashboardPage() {
         {/* Quick action buttons */}
         <div className="flex flex-wrap gap-2">
           <Link
+            href="/dashboard/transaksi"
+            className="px-4 py-2.5 bg-primary hover:bg-primary/90 text-on-primary font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
+          >
+            <span className="material-symbols-outlined text-sm">point_of_sale</span>
+            Kasir &amp; Input Transaksi
+          </Link>
+          <Link
+            href="/dashboard/laporan"
+            className="px-4 py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
+          >
+            <span className="material-symbols-outlined text-sm">receipt_long</span>
+            Pembukuan &amp; Laporan
+          </Link>
+          <Link
             href="/dashboard/stok"
             className="px-4 py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
           >
@@ -69,15 +83,8 @@ export default async function DashboardPage() {
             href="/dashboard/piutang"
             className="px-4 py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
           >
-            <span className="material-symbols-outlined text-sm">receipt_long</span>
+            <span className="material-symbols-outlined text-sm">menu_book</span>
             Buku Piutang
-          </Link>
-          <Link
-            href="/dashboard/chat"
-            className="px-4 py-2.5 bg-primary hover:bg-primary/90 text-on-primary font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
-          >
-            <span className="material-symbols-outlined text-sm">smart_toy</span>
-            Tanya Copilot AI
           </Link>
         </div>
       </div>

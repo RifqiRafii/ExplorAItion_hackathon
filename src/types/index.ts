@@ -35,3 +35,26 @@ export interface ChatMessage {
   role: 'user' | 'assistant' | 'model';
   content: string;
 }
+
+export interface TransactionItem {
+  productId?: string;
+  name: string;
+  quantity: number;
+  price: number;
+  costPrice?: number;
+  unit?: string;
+  subtotal?: number;
+}
+
+export interface Transaction {
+  id: string;
+  umkm_id?: string;
+  created_at: string;
+  transaction_date?: string;
+  type: 'IN' | 'OUT';
+  category?: string;
+  payment_method: 'CASH' | 'CREDIT';
+  total_amount: number;
+  items: TransactionItem[];
+  debt_id?: string | null;
+}
