@@ -217,9 +217,13 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
             </thead>
             <tbody className="divide-y divide-outline/10">
               {filteredDebts.length > 0 ? (
-                filteredDebts.map((debt) => (
-                  <tr key={debt.id} className="hover:bg-surface-container/30 transition-colors">
-                    <td className="p-space-md font-body-lg text-on-surface font-semibold">
+                filteredDebts.map((debt) => {
+                  const hariTelat = hitungHariTelat(debt.due_date);
+                  const isOverdue = debt.status === 'UNPAID' && hariTelat > 0;
+                  
+                  return (
+                    <tr key={debt.id} className={`hover:bg-surface-container/30 transition-colors ${isOverdue ? 'bg-error-container/20' : ''}`}>
+                      <td className="p-space-md font-body-lg text-on-surface font-semibold">
                       {debt.customer_name}
                     </td>
                     <td className="p-space-md font-body-md text-on-surface-variant">
@@ -229,7 +233,21 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
                       Rp {debt.amount.toLocaleString('id-ID')}
                     </td>
                     <td className="p-space-md font-body-md text-on-surface-variant">
-                      {new Date(debt.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      <div className="flex flex-col">
+                        <div className={`flex items-center gap-1.5 ${isOverdue ? 'text-error font-bold' : ''}`}>
+                          {new Date(debt.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {isOverdue && (
+                            <span className="material-symbols-outlined text-sm" title={`Terlewat ${hariTelat} hari`}>
+                              warning
+                            </span>
+                          )}
+                        </div>
+                        {isOverdue && (
+                          <div className="text-[10px] font-bold text-error uppercase mt-0.5 tracking-wider bg-error/10 self-start px-1.5 py-0.5 rounded">
+                            Terlewat {hariTelat} hari
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="p-space-md">
                       <button
@@ -252,7 +270,6 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
                         {debt.status === 'UNPAID' && (
                           <button 
                             onClick={() => {
-                              const hariTelat = hitungHariTelat(debt.due_date);
                               const msg = buatPesanTagih({
                                 nama: debt.customer_name,
                                 nominal: debt.amount,
@@ -295,7 +312,8 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
                       </div>
                     </td>
                   </tr>
-                ))
+                );
+              })
               ) : (
                 <tr>
                   <td colSpan={6} className="p-space-xl text-center text-on-surface-variant">
