@@ -369,23 +369,39 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
                   Batal
                 </button>
                 {previewPhone && normalisasiNomor(previewPhone) ? (
-                  <a
-                    href={linkWa(previewPhone, previewMessage)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => {
-                      updateLastBilled(previewDebt.id);
-                      if (previewPhone !== previewDebt.customer_phone) {
-                        updateDebtPhone(previewDebt.id, previewPhone);
-                        setDebts(prev => prev.map(d => d.id === previewDebt.id ? { ...d, customer_phone: previewPhone } : d));
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('http://localhost:3001/send-message', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            phone: previewPhone,
+                            message: previewMessage
+                          })
+                        });
+                        
+                        const data = await res.json();
+                        
+                        if (data.success) {
+                          updateLastBilled(previewDebt.id);
+                          if (previewPhone !== previewDebt.customer_phone) {
+                            updateDebtPhone(previewDebt.id, previewPhone);
+                            setDebts(prev => prev.map(d => d.id === previewDebt.id ? { ...d, customer_phone: previewPhone } : d));
+                          }
+                          setPreviewDebt(null);
+                          setSuccessMessage('Pesan WA berhasil terkirim secara otomatis lewat Baileys!');
+                        } else {
+                          alert('Gagal mengirim WA: ' + data.error);
+                        }
+                      } catch (e) {
+                        alert('Gagal! Server WA (Baileys) belum berjalan. Pastikan Anda menjalankan wa-server di port 3001.');
                       }
-                      setPreviewDebt(null);
-                      setSuccessMessage('Pesan WA telah disiapkan di tab baru.');
                     }}
                     className="px-5 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20b858] text-white font-bold text-sm flex items-center gap-2 transition-colors cursor-pointer"
                   >
-                    <span className="material-symbols-outlined text-sm">send</span> Kirim via WhatsApp
-                  </a>
+                    <span className="material-symbols-outlined text-sm">send</span> Kirim Otomatis
+                  </button>
                 ) : (
                   <button
                     disabled
