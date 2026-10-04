@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { addDebt, toggleDebtStatus, deleteDebt, updateLastBilled } from '@/app/actions/piutang';
+import { addDebt, toggleDebtStatus, deleteDebt, updateLastBilled, updateDebtPhone, updateDebt } from '@/app/actions/piutang';
 import { hitungHariTelat, buatPesanTagih, normalisasiNomor, linkWa } from '@/lib/penagih';
 import type { Debt } from '@/types';
 
@@ -19,6 +19,9 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
   const [successMessage, setSuccessMessage] = useState('');
   const [previewDebt, setPreviewDebt] = useState<Debt | null>(null);
   const [previewMessage, setPreviewMessage] = useState('');
+  const [previewPhone, setPreviewPhone] = useState('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editDebt, setEditDebt] = useState<Debt | null>(null);
 
   // Default due date: 7 days from now
   const defaultDueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -53,6 +56,27 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
     } else {
       setSuccessMessage('Catatan piutang berhasil ditambahkan!');
       setIsModalOpen(false);
+      form.reset();
+      setLoading(false);
+      window.location.reload();
+    }
+  };
+
+  const handleEditSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMessage('');
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const res = await updateDebt(formData);
+
+    if (res?.error) {
+      setErrorMessage(res.error);
+      setLoading(false);
+    } else {
+      setSuccessMessage('Catatan piutang berhasil diperbarui!');
+      setIsEditModalOpen(false);
       form.reset();
       setLoading(false);
       window.location.reload();
@@ -237,6 +261,7 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
                               });
                               setPreviewMessage(msg);
                               setPreviewDebt(debt);
+                              setPreviewPhone(debt.customer_phone || '');
                             }}
                             title="Kirim pengingat WhatsApp"
                             className="text-primary hover:text-primary-container transition-colors inline-flex items-center gap-1 font-label-md font-bold bg-primary/10 px-2.5 py-1.5 rounded-lg cursor-pointer"
@@ -244,6 +269,13 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
                             <span className="material-symbols-outlined text-sm">send</span> Tagih WA
                           </button>
                         )}
+                        <button
+                          onClick={() => { setEditDebt(debt); setIsEditModalOpen(true); }}
+                          title="Edit Catatan"
+                          className="p-1.5 text-on-surface-variant hover:text-primary rounded-lg hover:bg-surface-container transition-colors cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-lg">edit</span>
+                        </button>
                         <button
                           onClick={() => handleToggleStatus(debt)}
                           title={debt.status === 'UNPAID' ? 'Tandai Lunas' : 'Tandai Belum Lunas'}
@@ -309,9 +341,13 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
                 <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                   Nomor Tujuan
                 </label>
-                <div className="font-body-md bg-surface-container-low p-2 rounded-lg border border-outline/10">
-                  {previewDebt.customer_phone || <span className="text-error italic">Tidak ada nomor HP</span>}
-                </div>
+                <input
+                  type="tel"
+                  value={previewPhone}
+                  onChange={(e) => setPreviewPhone(e.target.value)}
+                  placeholder="Contoh: 08123456789"
+                  className="w-full px-4 py-2.5 bg-surface-container-low border border-outline/20 rounded-xl text-sm focus:outline-none focus:border-primary font-body-md"
+                />
               </div>
 
               <div>
@@ -332,13 +368,17 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
                 >
                   Batal
                 </button>
-                {previewDebt.customer_phone && normalisasiNomor(previewDebt.customer_phone) ? (
+                {previewPhone && normalisasiNomor(previewPhone) ? (
                   <a
-                    href={linkWa(previewDebt.customer_phone, previewMessage)}
+                    href={linkWa(previewPhone, previewMessage)}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => {
                       updateLastBilled(previewDebt.id);
+                      if (previewPhone !== previewDebt.customer_phone) {
+                        updateDebtPhone(previewDebt.id, previewPhone);
+                        setDebts(prev => prev.map(d => d.id === previewDebt.id ? { ...d, customer_phone: previewPhone } : d));
+                      }
                       setPreviewDebt(null);
                       setSuccessMessage('Pesan WA telah disiapkan di tab baru.');
                     }}
@@ -351,7 +391,7 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
                     disabled
                     className="px-5 py-2.5 rounded-xl bg-surface-container-high text-on-surface-variant font-bold text-sm flex items-center gap-2 opacity-50 cursor-not-allowed"
                   >
-                    <span className="material-symbols-outlined text-sm">block</span> Tambahkan nomor HP dulu
+                    <span className="material-symbols-outlined text-sm">block</span> Tambahkan nomor HP
                   </button>
                 )}
               </div>
@@ -462,6 +502,118 @@ export default function PiutangClient({ initialDebts = [] }: PiutangClientProps)
                     <>
                       <span className="material-symbols-outlined text-sm">save</span>
                       Simpan Catatan
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Edit Catatan Piutang */}
+      {isEditModalOpen && editDebt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline/20 p-6 w-full max-w-lg shadow-xl relative">
+            <div className="flex items-center justify-between pb-4 border-b border-outline/10">
+              <div className="flex items-center gap-2 text-primary font-bold">
+                <span className="material-symbols-outlined">edit</span>
+                <h3 className="font-headline-sm font-bold text-on-surface">Edit Catatan Piutang / Kasbon</h3>
+              </div>
+              <button 
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg hover:bg-surface-container cursor-pointer"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {errorMessage && (
+              <div className="mt-4 p-3 bg-error-container/40 border border-error/20 text-error rounded-xl text-sm flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">error</span>
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleEditSubmit} className="mt-4 space-y-4">
+              <input type="hidden" name="id" value={editDebt.id} />
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                  Nama Pelanggan <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="customer_name"
+                  required
+                  defaultValue={editDebt.customer_name}
+                  className="w-full px-4 py-2.5 bg-surface-container-low border border-outline/20 rounded-xl text-sm focus:outline-none focus:border-primary font-body-md"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                  Nomor HP / WhatsApp (Untuk Notifikasi Tagihan)
+                </label>
+                <input
+                  type="tel"
+                  name="customer_phone"
+                  defaultValue={editDebt.customer_phone}
+                  className="w-full px-4 py-2.5 bg-surface-container-low border border-outline/20 rounded-xl text-sm focus:outline-none focus:border-primary font-body-md"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    Jumlah Kasbon (Rp) <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="amount"
+                    required
+                    min="500"
+                    step="500"
+                    defaultValue={editDebt.amount}
+                    className="w-full px-4 py-2.5 bg-surface-container-low border border-outline/20 rounded-xl text-sm focus:outline-none focus:border-primary font-body-md font-bold text-error"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    Jatuh Tempo <span className="text-error">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="due_date"
+                    required
+                    defaultValue={editDebt.due_date ? new Date(editDebt.due_date).toISOString().split('T')[0] : ''}
+                    className="w-full px-4 py-2.5 bg-surface-container-low border border-outline/20 rounded-xl text-sm focus:outline-none focus:border-primary font-body-md"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-outline/10 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-outline/20 text-on-surface-variant hover:bg-surface-container font-bold text-sm transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-on-primary font-bold text-sm flex items-center gap-2 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <span className="material-symbols-outlined text-sm animate-spin">refresh</span>
+                      Menyimpan...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-sm">save</span>
+                      Simpan Perubahan
                     </>
                   )}
                 </button>

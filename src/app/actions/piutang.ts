@@ -151,3 +151,61 @@ export async function updateLastBilled(debtId: string) {
   revalidatePath('/dashboard/piutang');
   return { success: true };
 }
+
+export async function updateDebtPhone(debtId: string, phone: string) {
+  const user = await getUser();
+  if (!user) return { error: 'No session' };
+
+  try {
+    const { error } = await supabase
+      .from('debts')
+      .update({ customer_phone: phone })
+      .eq('id', debtId)
+      .eq('umkm_id', user.id);
+      
+    if (error) return { error: error.message };
+  } catch (e: any) {
+    console.error('Error updating phone', e);
+    return { error: e.message };
+  }
+  
+  revalidatePath('/dashboard/piutang');
+  return { success: true };
+}
+
+export async function updateDebt(formData: FormData) {
+  const user = await getUser();
+  if (!user) {
+    return { error: 'Sesi akun tidak ditemukan di database. Silakan logout lalu login kembali.' };
+  }
+
+  const id = formData.get('id') as string;
+  const customer_name = formData.get('customer_name') as string;
+  const customer_phone = (formData.get('customer_phone') as string) || '';
+  const amount = parseInt((formData.get('amount') as string) || '0', 10);
+  const due_date = formData.get('due_date') as string;
+
+  if (!id || !customer_name || !amount || !due_date) {
+    return { error: 'Data tidak lengkap.' };
+  }
+
+  const { error } = await supabase
+    .from('debts')
+    .update({
+      customer_name,
+      customer_phone,
+      amount,
+      due_date: new Date(due_date).toISOString(),
+    })
+    .eq('id', id)
+    .eq('umkm_id', user.id);
+
+  if (error) {
+    console.error('Error updating debt:', error);
+    return { error: 'Gagal memperbarui catatan piutang: ' + error.message };
+  }
+
+  revalidatePath('/dashboard/piutang');
+  revalidatePath('/dashboard');
+  return { success: true };
+}

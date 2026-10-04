@@ -31,6 +31,7 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
   const [scannerStatus, setScannerStatus] = useState('');
   const [scannerTab, setScannerTab] = useState<'camera' | 'manual' | 'photo'>('camera');
   const [scanAiLoading, setScanAiLoading] = useState(false);
+  const [scannedBarcode, setScannedBarcode] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -64,7 +65,7 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
     }
   };
 
-  const handleBarcodeDetected = (code: string) => {
+  const handleBarcodeDetected = async (code: string) => {
     // Stop camera
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -75,69 +76,79 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
     // Check if product exists in current store
     const existing = products.find(p => p.name?.toLowerCase().includes(code.toLowerCase()));
     if (existing) {
-      setSearch(existing.name);
-      setSuccessMessage(`Barcode ditemukan: ${existing.name} (Stok: ${existing.stock} ${existing.unit})`);
+      setSearch(existing.name.replace(/\s*\[.*?\]/g, '').trim());
+      setSuccessMessage(`Barcode ditemukan: ${existing.name.replace(/\s*\[.*?\]/g, '').trim()} (Stok: ${existing.stock} ${existing.unit})`);
     } else {
       // Open add product modal pre-filled
       setErrorMessage('');
+      setScannedBarcode(code);
       setIsAddModalOpen(true);
-      setTimeout(() => {
-        const nameInput = document.getElementById('product-name-input') as HTMLInputElement | null;
-        if (nameInput) {
-          nameInput.value = `Produk [${code}]`;
-          nameInput.focus();
+      setSuccessMessage(`Mencari database untuk barcode ${code}...`);
+
+      try {
+        const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
+        const data = await res.json();
+        
+        let fetchedName = '';
+        if (data.status === 1 && data.product && data.product.product_name) {
+          fetchedName = data.product.product_name;
         }
-      }, 100);
-      setSuccessMessage(`Barcode baru (${code}) terdeteksi! Silakan lengkapi nama dan harga.`);
+
+        setTimeout(() => {
+          const nameInput = document.getElementById('product-name-input') as HTMLInputElement | null;
+          if (nameInput) {
+            nameInput.value = fetchedName;
+            nameInput.focus();
+            if (fetchedName) {
+              setSuccessMessage(`Info produk otomatis ditemukan: ${fetchedName}`);
+            } else {
+              setSuccessMessage(`Barcode baru (${code}) terdeteksi! Silakan lengkapi nama dan harga.`);
+            }
+          }
+        }, 100);
+      } catch (err) {
+        setTimeout(() => {
+          const nameInput = document.getElementById('product-name-input') as HTMLInputElement | null;
+          if (nameInput) {
+            nameInput.value = '';
+            nameInput.focus();
+          }
+        }, 100);
+        setSuccessMessage(`Barcode baru (${code}) terdeteksi! Silakan lengkapi nama dan harga.`);
+      }
     }
   };
 
   // Camera Barcode Scanning logic
   useEffect(() => {
-    let animationFrameId: number;
-    let detector: any = null;
+    let codeReader: any = null;
 
     if (isBarcodeModalOpen && scannerTab === 'camera') {
       const startCamera = async () => {
         try {
           setScannerStatus('Mengaktifkan kamera...');
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-          });
-          streamRef.current = stream;
+          const { BrowserMultiFormatReader } = await import('@zxing/library');
+          codeReader = new BrowserMultiFormatReader();
+          setScannerActive(true);
+          setScannerStatus('Arahkan kamera ke barcode produk...');
+
           if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-            videoRef.current.play();
-            setScannerActive(true);
-            setScannerStatus('Arahkan kamera ke barcode produk...');
-
-            // Check for native BarcodeDetector
-            const Win = window as any;
-            if ('BarcodeDetector' in Win) {
-              detector = new Win.BarcodeDetector({
-                formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code']
-              });
-
-              const scanFrame = async () => {
-                if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
-                  try {
-                    const barcodes = await detector.detect(videoRef.current);
-                    if (barcodes && barcodes.length > 0) {
-                      const detectedCode = barcodes[0].rawValue;
-                      playBeep();
-                      handleBarcodeDetected(detectedCode);
-                      return;
-                    }
-                  } catch {
-                    // Frame scan skip
+            codeReader.decodeFromConstraints(
+              { video: { facingMode: 'environment' } },
+              videoRef.current,
+              (result: any, err: any) => {
+                if (result) {
+                  const detectedCode = result.getText();
+                  playBeep();
+                  handleBarcodeDetected(detectedCode);
+                  if (codeReader) {
+                    codeReader.reset();
                   }
                 }
-                animationFrameId = requestAnimationFrame(scanFrame);
-              };
-              animationFrameId = requestAnimationFrame(scanFrame);
-            } else {
-              setScannerStatus('Kamera aktif. Gunakan foto atau ketik barcode jika browser tidak mendukung auto-detect.');
-            }
+              }
+            ).catch((err: any) => {
+              console.log('ZXing scan frame error:', err);
+            });
           }
         } catch (err) {
           console.error('Camera error:', err);
@@ -148,18 +159,15 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
 
       startCamera();
     } else {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
+      if (codeReader) {
+        codeReader.reset();
       }
       setScannerActive(false);
     }
 
     return () => {
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
+      if (codeReader) {
+        codeReader.reset();
       }
     };
   }, [isBarcodeModalOpen, scannerTab]);
@@ -208,6 +216,11 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
 
     const form = e.currentTarget;
     const formData = new FormData(form);
+    const barcode = formData.get('barcode') as string;
+    if (barcode) {
+      const name = formData.get('name') as string;
+      formData.set('name', `${name} [${barcode}]`);
+    }
     const res = await addProduct(formData);
 
     if (res?.error) {
@@ -216,6 +229,7 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
     } else {
       setSuccessMessage('Barang berhasil ditambahkan ke inventaris!');
       setIsAddModalOpen(false);
+      setScannedBarcode('');
       form.reset();
       setLoading(false);
       window.location.reload();
@@ -229,6 +243,11 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
 
     const form = e.currentTarget;
     const formData = new FormData(form);
+    const barcode = formData.get('barcode') as string;
+    if (barcode) {
+      const name = formData.get('name') as string;
+      formData.set('name', `${name} [${barcode}]`);
+    }
     const res = await updateProduct(formData);
 
     if (res?.error) {
@@ -363,7 +382,7 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
               <span className="material-symbols-outlined text-sm">qr_code_scanner</span> Scan Barcode
             </button>
             <button 
-              onClick={() => { setIsAddModalOpen(true); setErrorMessage(''); }}
+              onClick={() => { setIsAddModalOpen(true); setErrorMessage(''); setScannedBarcode(''); }}
               className="flex-1 md:flex-initial bg-primary hover:bg-primary/90 text-on-primary px-space-md py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">add</span> Tambah Barang
@@ -395,7 +414,7 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
                           <span className="material-symbols-outlined text-xl">inventory_2</span>
                         </div>
                         <div>
-                          <div>{product.name}</div>
+                          <div>{product.name?.replace(/\s*\[.*?\]/g, '').trim() || product.name}</div>
                           <span className="text-xs text-on-surface-variant font-normal">Satuan: {product.unit}</span>
                         </div>
                       </td>
@@ -690,6 +709,13 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
             )}
 
             <form onSubmit={handleAddSubmit} className="mt-4 space-y-4">
+              {scannedBarcode && (
+                <div className="bg-primary-container/30 border border-primary/20 text-primary px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">qr_code</span>
+                  Barcode terlampir otomatis
+                  <input type="hidden" name="barcode" value={scannedBarcode} />
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                   Nama Barang <span className="text-error">*</span>
@@ -831,6 +857,18 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
             <form onSubmit={handleEditSubmit} className="mt-4 space-y-4">
               <input type="hidden" name="id" value={selectedProduct.id} />
 
+              {(() => {
+                const barcodeMatch = selectedProduct.name.match(/\[(.*?)\]/);
+                const barcode = barcodeMatch ? barcodeMatch[1] : '';
+                return barcode ? (
+                  <div className="bg-primary-container/30 border border-primary/20 text-primary px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary">qr_code</span>
+                    Barcode terlampir otomatis
+                    <input type="hidden" name="barcode" value={barcode} />
+                  </div>
+                ) : null;
+              })()}
+
               <div>
                 <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                   Nama Barang <span className="text-error">*</span>
@@ -839,7 +877,7 @@ export default function StokClient({ initialProducts = [] }: StokClientProps) {
                   type="text"
                   name="name"
                   required
-                  defaultValue={selectedProduct.name}
+                  defaultValue={selectedProduct.name.replace(/\s*\[.*?\]/g, '').trim()}
                   className="w-full px-4 py-2.5 bg-surface-container-low border border-outline/20 rounded-xl text-sm focus:outline-none focus:border-primary font-body-md"
                 />
               </div>
